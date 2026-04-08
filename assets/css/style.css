@@ -81,7 +81,7 @@ body {
 /* ── HEADER ─────────────────────────────────────────────── */
 .site-header {
   /* Glassmorphism — charcoal glass */
-  background: rgba(26,26,26,.88);
+  background: rgba(26,26,26,.68);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255,255,255,.08);
@@ -231,7 +231,8 @@ body {
 /* ── HERO ─────────────────────────────────────────────── */
 .hero-section {
   background: linear-gradient(160deg, #1A1A1A 0%, #262626 60%, #2F3530 100%);
-  padding: 28px 22px 52px;
+  margin-top: -90px;
+  padding: 118px 22px 52px;
   position: relative;
   overflow: hidden;
   width: 100%;
@@ -390,7 +391,7 @@ body {
 /* Featured current prayer — sage glass */
 .prayer-featured {
   flex: 0 0 290px;
-  background: rgba(88,101,90,.85);
+  background: rgba(88,101,90,.65);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255,255,255,.14);
@@ -458,7 +459,7 @@ body {
 /* Prayer list — frosted glass */
 .prayer-list-panel {
   flex: 1;
-  background: rgba(255,255,255,.88);
+  background: rgba(255,255,255,.68);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,.65);
