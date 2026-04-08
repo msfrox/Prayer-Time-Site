@@ -1,7 +1,10 @@
 /* ============================================================
-   Sri Lanka Prayer Times — App v3
-   Key fix: S.todayData always loads for real today's month.
-            S.tableData follows the month selector (for table only).
+   Sri Lanka Prayer Times — App v4
+   Fixes:
+   - geoKm Haversine parameters corrected
+   - renderHeader now populates hero date block too
+   - buildMonthShare: aligned columns + separators
+   - Share modal: date picker for "Share Today"
    ============================================================ */
 'use strict';
 
@@ -49,6 +52,7 @@ const S = {
 
 // ── Utils ─────────────────────────────────────────────────
 const pad = n => String(n).padStart(2,'0');
+const col = (s, w) => String(s).padEnd(w);
 
 function parseTime(str) {
   if (!str) return null;
@@ -96,13 +100,18 @@ function hijriShort() {
   } catch { return ''; }
 }
 
-function geoKm(a,b,c,d){
-  const R=6371,dA=(b-a)*Math.PI/180,dC=(d-c)*Math.PI/180;
-  const x=Math.sin(dA/2)**2+Math.cos(a*Math.PI/180)*Math.cos(b*Math.PI/180)*Math.sin(dC/2)**2;
-  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+// ── FIX: Correct Haversine formula ─────────────────────────
+function geoKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2
+          + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180)
+          * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
-function nearestZone(lat,lng){
-  return ZONES_GEO.reduce((b,z)=>geoKm(lat,lng,z.lat,z.lng)<geoKm(lat,lng,b.lat,b.lng)?z:b).id;
+function nearestZone(lat, lng) {
+  return ZONES_GEO.reduce((b,z) => geoKm(lat,lng,z.lat,z.lng) < geoKm(lat,lng,b.lat,b.lng) ? z : b).id;
 }
 
 // ── Data fetching ─────────────────────────────────────────
@@ -134,13 +143,23 @@ function prayerStatus(row){
   return {current:cur,next:nxt};
 }
 
-// ── Header ────────────────────────────────────────────────
+// ── Header + Hero Date ─────────────────────────────────────
 function renderHeader(){
   const now=new Date();
+  const dateStr=`${WDAY_S[now.getDay()]}, ${now.getDate()} ${MON_SHORT[now.getMonth()+1]} ${now.getFullYear()}`;
+  const hijriStr=hijriShort();
+
+  // Header date (hidden on mobile via CSS, visible on desktop)
   const g=document.getElementById('header-gregorian');
   const h=document.getElementById('header-hijri');
-  if(g) g.textContent=`${WDAY_S[now.getDay()]}, ${now.getDate()} ${MON_SHORT[now.getMonth()+1]} ${now.getFullYear()}`;
-  if(h) h.textContent=hijriShort();
+  if(g) g.textContent=dateStr;
+  if(h) h.textContent=hijriStr;
+
+  // Hero date block (always visible)
+  const hg=document.getElementById('hero-date-greg');
+  const hh=document.getElementById('hero-date-hijri');
+  if(hg) hg.textContent=dateStr;
+  if(hh) hh.textContent=hijriStr;
 }
 
 // ── Hero ──────────────────────────────────────────────────
@@ -236,7 +255,6 @@ function renderCountdown(row,next){
 }
 
 // ── Monthly table ──────────────────────────────────────────
-// Uses S.tableData — follows the month selector
 function renderMonthly(data){
   const tbody=document.getElementById('monthly-tbody');
   const title=document.getElementById('monthly-title');
@@ -280,26 +298,28 @@ function renderApt(data){
   </tr>`;
 }
 
-// ── Share ─────────────────────────────────────────────────
-function buildTodayShare(data,row){
-  if(!data||!row) return '';
-  const d=new Date(data.year,data.monthNum-1,+row.date.split('-')[0]);
-  const hijri=hijriDate();
-  const imsak=minusMins(row.fajr,2);
+// ── Share builders ─────────────────────────────────────────
+function buildTodayShare(data, row) {
+  if (!data || !row) return '';
+  const dNum = +row.date.split('-')[0];
+  const d = new Date(data.year, data.monthNum-1, dNum);
+  const imsak = minusMins(row.fajr, 2);
   return [
-    `🕌 SALAH TIME 🇱🇰`,
+    `🕌 SALAH TIMES 🇱🇰`,
     `📍 ${data.districts.join(', ')}`,
     ``,
     `${WDAY_F[d.getDay()]} / ${IDAY_F[d.getDay()]}`,
     `${row.date.replace('-',' ')} ${data.monthName} ${data.year}`,
-    hijri,
+    hijriDate(),
     ``,
-    `Fajr      ${row.fajr}`,
-    `Sunrise   ${row.sunrise}`,
-    `Zuhr      ${row.luhr}`,
-    `Asr       ${row.asr}`,
-    `Maghrib   ${row.magrib}`,
-    `Isha      ${row.isha}`,
+    `┌─────────────────────────────┐`,
+    `  Fajr        ${row.fajr}`,
+    `  Sunrise     ${row.sunrise}`,
+    `  Zuhr        ${row.luhr}`,
+    `  Asr         ${row.asr}`,
+    `  Maghrib     ${row.magrib}`,
+    `  Isha        ${row.isha}`,
+    `└─────────────────────────────┘`,
     ``,
     `📌 Imsak (Sahr End): ${imsak}`,
     ``,
@@ -308,23 +328,87 @@ function buildTodayShare(data,row){
   ].join('\n');
 }
 
-function buildMonthShare(data){
-  if(!data) return '';
-  const hdr=`🕌 SALAH TIMES 🇱🇰 — ${data.monthName} ${data.year}\n📍 ${data.districts.join(', ')}\nSource: ACJU | www.acju.lk\n`;
-  const rows=data.days.map(d=>{
-    const dow=new Date(data.year,data.monthNum-1,+d.date.split('-')[0]).getDay();
-    return `${d.date.padEnd(7)} ${WDAY_S[dow]}  ${d.fajr}  ${d.luhr}  ${d.asr}  ${d.magrib}  ${d.isha}`;
-  }).join('\n');
-  return hdr+'\n'+rows;
+// ── FIX: Better formatted month share ─────────────────────
+function buildMonthShare(data) {
+  if (!data) return '';
+  const SEP = `─────────────────────────────────────────────`;
+  const lines = [
+    `🕌 SALAH TIMES — ${data.monthName} ${data.year} 🇱🇰`,
+    `📍 ${data.districts.join(', ')}`,
+    `Source: ACJU | www.acju.lk`,
+    ``,
+    SEP,
+    `${col('Date',10)} ${col('Day',5)} ${col('Fajr',9)} ${col('Zuhr',9)} ${col('Asr',9)} ${col('Maghrib',9)} Isha`,
+    SEP,
+  ];
+  data.days.forEach(d => {
+    const dow = new Date(data.year, data.monthNum-1, +d.date.split('-')[0]).getDay();
+    lines.push(
+      `${col(d.date,10)} ${col(WDAY_S[dow],5)} ${col(d.fajr,9)} ${col(d.luhr,9)} ${col(d.asr,9)} ${col(d.magrib,9)} ${d.isha}`
+    );
+  });
+  lines.push(SEP);
+  return lines.join('\n');
 }
 
-function openShare(text){
-  const ov=document.getElementById('share-modal-overlay');
-  const pr=document.getElementById('share-preview-text');
-  if(!ov||!pr) return;
-  pr.textContent=text; ov._text=text; ov.classList.add('visible');
+// ── Share modal ────────────────────────────────────────────
+function openShareToday(data) {
+  if (!data) { alert('No data loaded yet.'); return; }
+  const ov        = document.getElementById('share-modal-overlay');
+  const pr        = document.getElementById('share-preview-text');
+  const picker    = document.getElementById('share-day-picker');
+  const pickerRow = document.getElementById('share-date-picker');
+  if (!ov || !pr) return;
+
+  // Show the date picker
+  if (pickerRow) pickerRow.style.display = '';
+
+  // Populate the day picker
+  if (picker) {
+    picker.innerHTML = '';
+    const todayDate = new Date().getDate();
+    data.days.forEach(day => {
+      const dNum = +day.date.split('-')[0];
+      const dow  = new Date(data.year, data.monthNum-1, dNum).getDay();
+      const opt  = document.createElement('option');
+      opt.value  = day.date;
+      opt.textContent = `${day.date} ${data.monthName} (${WDAY_S[dow]})`;
+      if (dNum === todayDate) opt.selected = true;
+      picker.appendChild(opt);
+    });
+
+    const updatePreview = () => {
+      const row  = data.days.find(d => d.date === picker.value) || data.days[0];
+      const text = buildTodayShare(data, row);
+      pr.textContent = text;
+      ov._text = text;
+    };
+    picker.onchange = updatePreview;
+    updatePreview();
+  }
+
+  ov.classList.add('visible');
 }
-function closeShare(){document.getElementById('share-modal-overlay')?.classList.remove('visible');}
+
+function openShareMonth(data) {
+  if (!data) { alert('No data loaded yet.'); return; }
+  const ov        = document.getElementById('share-modal-overlay');
+  const pr        = document.getElementById('share-preview-text');
+  const pickerRow = document.getElementById('share-date-picker');
+  if (!ov || !pr) return;
+
+  // Hide day picker for month share
+  if (pickerRow) pickerRow.style.display = 'none';
+
+  const text = buildMonthShare(data);
+  pr.textContent = text;
+  ov._text = text;
+  ov.classList.add('visible');
+}
+
+function closeShare() {
+  document.getElementById('share-modal-overlay')?.classList.remove('visible');
+}
 
 // ── Selectors ─────────────────────────────────────────────
 function populateZones(zones){
@@ -355,11 +439,7 @@ function pushParams(){
 }
 
 // ── CORE RENDER SPLIT ─────────────────────────────────────
-// renderToday: loads S.todayData (always current date's month), renders hero + cards
-// renderTable: loads S.tableData (selected month), renders monthly table only
-
 async function renderToday(){
-  // Always load real today's month for the top section
   const panel=document.getElementById('prayer-list');
   if(panel) panel.innerHTML='<div class="loading-block"><div class="spinner"></div></div>';
   try {
@@ -373,7 +453,6 @@ async function renderToday(){
     renderImsakIftar(row);
     renderApt(data);
 
-    // Start live tick
     clearInterval(S.tickTimer);
     let lastCur=current;
     S.tickTimer=setInterval(()=>{
@@ -436,37 +515,30 @@ async function init(){
   renderHeader();
   S.clockTimer=setInterval(renderHeader,30000);
 
-  // Zones
   try{const{zones}=await loadZones();S.zones=zones;populateZones(zones);}catch(e){}
   populateMonths();
 
-  // Zone changes → reload both today section AND table
   document.getElementById('zone-selector')?.addEventListener('change',e=>{
     S.zone=e.target.value;
     renderToday(); renderTable(); pushParams();
   });
 
-  // Month changes → ONLY reload the monthly table, NOT today's top section
   document.getElementById('month-selector')?.addEventListener('change',e=>{
     S.tableMonth=parseInt(e.target.value);
     renderTable(); pushParams();
-    // Do NOT call renderToday() — hero stays showing real today
   });
 
   document.getElementById('btn-locate')?.addEventListener('click',handleLocate);
 
-  // Share
+  // Share buttons
   document.getElementById('btn-share-today')?.addEventListener('click',()=>{
-    const row=findTodayRow(S.todayData);
-    if(!row){alert('No data loaded yet.');return;}
-    openShare(buildTodayShare(S.todayData,row));
+    openShareToday(S.todayData);
   });
   document.getElementById('btn-share-month')?.addEventListener('click',()=>{
-    if(!S.tableData){alert('No data loaded yet.');return;}
-    openShare(buildMonthShare(S.tableData));
+    openShareMonth(S.tableData);
   });
 
-  // Modal
+  // Modal controls
   document.getElementById('btn-modal-close')?.addEventListener('click',closeShare);
   document.getElementById('share-modal-overlay')?.addEventListener('click',e=>{
     if(e.target.id==='share-modal-overlay') closeShare();
@@ -485,7 +557,6 @@ async function init(){
     else{window.open(`https://wa.me/?text=${encodeURIComponent(t)}`,'_blank');}
   });
 
-  // Load both on init
   await renderToday();
   await renderTable();
 }
