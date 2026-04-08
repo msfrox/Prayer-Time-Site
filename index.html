@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sri Lanka Prayer Times – ACJU Official Timetable</title>
+  <meta name="description" content="Official Islamic prayer timetables for all districts of Sri Lanka, published by All Ceylon Jamiyyathul Ulama (ACJU). Accurate Fajr, Zuhr, Asr, Maghrib and Isha times." />
+  <meta name="keywords" content="Sri Lanka prayer times, Islamic prayer timetable, ACJU, Fajr, Zuhr, Asr, Maghrib, Isha, Colombo, Jaffna, Kandy" />
+  <meta name="theme-color" content="#2B3D14" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Sri Lanka Prayer Times – ACJU Official" />
+  <meta property="og:description" content="Accurate, district-wise Islamic prayer timetables for all of Sri Lanka." />
+  <meta property="og:type" content="website" />
+
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕌</text></svg>" />
+</head>
+<body>
+
+<!-- ── Site Header ──────────────────────────────────────── -->
+<header class="site-header">
+  <div class="header-inner">
+    <a class="header-logo" href="./">
+      <div class="logo-icon">🕌</div>
+      <div class="logo-text">
+        <span class="logo-title">Sri Lanka Prayer Times</span>
+        <span class="logo-sub">ACJU Official Timetable 2026</span>
+      </div>
+    </a>
+    <div class="header-date-display">
+      <div class="header-date-gregorian" id="header-date-gregorian">Loading…</div>
+      <div class="header-date-hijri" id="header-date-hijri"></div>
+    </div>
+  </div>
+
+  <!-- Zone & Month Selectors -->
+  <div class="zone-bar">
+    <div class="zone-bar-inner">
+      <span style="color:rgba(255,255,255,0.6);font-size:12px;">📍</span>
+      <div class="zone-select-wrap">
+        <span>Zone / District:</span>
+        <select id="zone-selector" aria-label="Select Zone">
+          <option value="01">Zone 01 — Colombo, Gampaha, Kalutara</option>
+        </select>
+      </div>
+      <div class="month-select-wrap">
+        <span>Month:</span>
+        <select id="month-selector" aria-label="Select Month">
+          <option value="4">April</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ── Main Content ──────────────────────────────────────── -->
+<main class="main-content" id="main-content-area">
+
+  <!-- Today's Section -->
+  <section class="today-section">
+    <div class="today-location">
+      <h1 id="location-title">Prayer Times — Sri Lanka</h1>
+      <div class="location-meta" id="location-meta">
+        Sri Lanka &bull; <span class="badge-source">✓ ACJU Official</span>
+      </div>
+      <div class="imsak-iftar-bar">
+        <span>Imsak (Sahr End):</span>
+        <strong id="imsak-time">--:--</strong>
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <span>Iftar (Maghrib):</span>
+        <strong id="iftar-time">--:--</strong>
+      </div>
+    </div>
+
+    <!-- Prayer Cards -->
+    <div class="prayer-cards-grid" id="prayer-cards-grid">
+      <!-- Populated by JS -->
+      <div class="loading-overlay" style="grid-column:1/-1">
+        <div class="spinner"></div>
+        <span>Loading prayer times…</span>
+      </div>
+    </div>
+
+    <!-- Countdown -->
+    <div class="countdown-bar">
+      <div class="countdown-label" id="next-prayer-name-wrap">
+        Next prayer: <strong id="next-prayer-name">—</strong>
+      </div>
+      <div class="countdown-timer" id="countdown-timer">--:--:--</div>
+    </div>
+  </section>
+
+  <!-- This Week -->
+  <section class="weekly-section">
+    <div class="section-header">
+      <h2 class="section-title">This Week</h2>
+    </div>
+    <div class="prayer-table-wrap">
+      <table class="prayer-table" aria-label="Weekly prayer times">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Fajr</th>
+            <th>Sunrise</th>
+            <th>Zuhr</th>
+            <th>Asr</th>
+            <th>Maghrib</th>
+            <th>Isha</th>
+          </tr>
+        </thead>
+        <tbody id="weekly-tbody">
+          <tr><td colspan="7" style="text-align:center;padding:20px;color:#888;">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Full Monthly Table -->
+  <section class="monthly-section">
+    <div class="monthly-header">
+      <h2 id="monthly-month-title">Monthly Prayer Timetable</h2>
+      <div class="zone-badge" id="monthly-zone-label">Zone 01</div>
+    </div>
+    <div class="monthly-table-wrap">
+      <table class="monthly-table" aria-label="Monthly prayer timetable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Fajr</th>
+            <th>Sunrise</th>
+            <th>Zuhr (Luhr)</th>
+            <th>Asr</th>
+            <th>Maghrib</th>
+            <th>Isha</th>
+          </tr>
+        </thead>
+        <tbody id="monthly-tbody">
+          <tr><td colspan="7" style="text-align:center;padding:30px;color:#888;">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Sahr / Imsak Note -->
+  <div class="footer-note">
+    <strong>📝 Note:</strong>
+    Kindly requested to set the end of Sahr (Imsak) <strong>two minutes before Fajr time</strong>.
+    The times shown in this timetable are for ground level. Please see the apartment adjustment table below if you live in a high-rise building.
+  </div>
+
+  <!-- Apartment Adjustments -->
+  <section class="apt-section">
+    <div class="section-header">
+      <h2 class="section-title">Prayer Time Adjustments for Apartments</h2>
+    </div>
+    <div class="apt-table-wrap">
+      <div class="apt-header">Prayer Time Differences for Apartments / High-Rise Buildings</div>
+      <div class="apt-sub-header">தொடர்மாடிகளுக்கான தொழுகை நேர வித்தியாச அட்டவணை</div>
+      <table class="apt-table" aria-label="Apartment height adjustments">
+        <thead>
+          <tr>
+            <th>Height (Stories)</th>
+            <th>Height (Metres)</th>
+            <th>Fajr</th>
+            <th>Sunrise</th>
+            <th>Maghrib</th>
+            <th>Isha</th>
+          </tr>
+        </thead>
+        <tbody id="apt-tbody">
+          <tr>
+            <td>06–35</td>
+            <td>24–140</td>
+            <td class="apt-diff-neg">−1 min</td>
+            <td class="apt-diff-neg">−1 min</td>
+            <td class="apt-diff-pos">+1 min</td>
+            <td class="apt-diff-pos">+1 min</td>
+          </tr>
+          <tr>
+            <td>35–87</td>
+            <td>140–350</td>
+            <td class="apt-diff-neg">−2 min</td>
+            <td class="apt-diff-neg">−2 min</td>
+            <td class="apt-diff-pos">+2 min</td>
+            <td class="apt-diff-pos">+2 min</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Attribution -->
+  <div class="attribution">
+    <div class="attribution-logo">🕌</div>
+    <div class="attribution-text">
+      <h3>All Ceylon Jamiyyathul Ulama (ACJU)</h3>
+      <p>
+        This prayer time schedule has been prepared based on the calculations used by the late
+        <strong>Al-'Alim M.I. Abdus Samad Makdoomi</strong> (Rahmatullahi Alayhi),
+        the former president of the All Ceylon Jamiyyathul Ulama and the founder of the Hassaniyya Arabic College.
+        Incorporated under Act of Parliament No. 26 of 1985.
+      </p>
+      <div class="attribution-links">
+        <a href="https://www.acju.lk" target="_blank" rel="noopener">🌐 www.acju.lk</a>
+        <a href="tel:+94117490490">📞 +94 117 490 490</a>
+        <a href="mailto:info@acju.lk">✉️ info@acju.lk</a>
+        <a href="https://twitter.com/ACJUNews" target="_blank" rel="noopener">𝕏 @ACJUNews</a>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── Site Footer ─────────────────────────────────────────── -->
+<footer class="site-footer">
+  <p>
+    Prayer times sourced from <a href="https://www.acju.lk" target="_blank" rel="noopener">All Ceylon Jamiyyathul Ulama (ACJU)</a> official timetables.
+    All times are for Sri Lanka Standard Time (UTC+5:30).
+  </p>
+  <p style="margin-top:6px;opacity:0.6;font-size:11px;">
+    For the most accurate times, always refer to the official ACJU timetable PDFs available at acju.lk
+  </p>
+</footer>
+
+<script src="assets/js/app.js"></script>
+</body>
+</html>
