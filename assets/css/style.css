@@ -970,6 +970,11 @@ body {
   .hero-timer { font-size: 46px; }
 }
 
+/* Desktop */
+@media (min-width: 680px) {
+
+}
+
 /* Mobile */
 @media (max-width: 680px) {
   /* Header — hide date (moved to hero) */
@@ -977,6 +982,7 @@ body {
   .logo-title { font-size: 13px; }
   .logo-sub { display: none; }
   .header-date { display: none; }   /* Whole date moved to hero */
+  .logo-emblem { display: none; } 
 
   /* Selectors — full-width stacked */
   .selectors-bar {
@@ -989,12 +995,12 @@ body {
     min-width: 0;
   }
   .btn-locate {
-    width: 100%;
+    width: 100px;
     margin-left: 0;
   }
 
   /* Hero */
-  .hero-section { padding: 18px 14px 50px; }
+  .hero-section { padding: 110px 14px 50px; }
 
   /* Mobile hero: two-column grid for next prayer + timer */
   .hero-body {

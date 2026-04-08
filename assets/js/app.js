@@ -169,6 +169,7 @@ function renderHero(data,row){
   const locEl  =document.getElementById('hero-location-name');
   const badgeEl=document.getElementById('hero-location-badge');
   if(locEl&&data)  locEl.textContent=data.districts.join(' • ');
+  if(badgeEl&&data) badgeEl.textContent=data.zoneName;
 
   const lblEl=document.getElementById('hero-next-label');
   const nmEl =document.getElementById('hero-next-name');
