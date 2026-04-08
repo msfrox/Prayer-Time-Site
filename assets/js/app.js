@@ -1,339 +1,475 @@
 /* ============================================================
-   Sri Lanka Prayer Times - Main Application
-   All data loaded from /data/ folder (ACJU Timetables)
+   Sri Lanka Prayer Times — App v2
+   Features: live countdown, auto-location, share, mobile list
    ============================================================ */
-
 'use strict';
 
 // ── Constants ─────────────────────────────────────────────
 const DATA_BASE = './data';
 
-const PRAYER_ORDER = ['fajr', 'sunrise', 'luhr', 'asr', 'magrib', 'isha'];
-const PRAYER_LABELS = {
-  fajr: 'Fajr', sunrise: 'Sunrise', luhr: 'Zuhr', asr: 'Asr', magrib: 'Maghrib', isha: 'Isha'
-};
-const PRAYER_ICONS = {
-  fajr: '🌙', sunrise: '🌅', luhr: '☀️', asr: '🌤️', magrib: '🌆', isha: '🌙'
-};
+const PRAYERS = ['fajr', 'sunrise', 'luhr', 'asr', 'magrib', 'isha'];
+const PRAYER_LABEL = { fajr:'Fajr', sunrise:'Sunrise', luhr:'Zuhr', asr:'Asr', magrib:'Maghrib', isha:'Isha' };
+const PRAYER_ICON  = { fajr:'🌙', sunrise:'🌅', luhr:'☀️', asr:'🌤️', magrib:'🏙️', isha:'🌙' };
 
-const MONTH_NAMES = [
-  '', 'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-];
+const MONTH_NAMES = ['','January','February','March','April','May','June',
+  'July','August','September','October','November','December'];
+const MONTH_SHORT = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const WEEK_DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const WEEK_FULL   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const ISLAMIC_DAYS = ['Al-Ahad','Al-Ithnayn','Ath-Thulathaa','Al-Arbi\'aa','Al-Khamees','Al-Jumu\'ah','As-Sabt'];
+const HIJRI_MONTHS = ['Muharram','Safar',"Rabi' al-Awwal","Rabi' al-Thani",
+  'Jumada al-Ula','Jumada al-Akhirah','Rajab',"Sha'ban",
+  'Ramadan','Shawwal',"Dhu al-Qi'dah",'Dhu al-Hijjah'];
 
-const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-// Hijri month names
-const HIJRI_MONTHS = [
-  'Muharram', 'Safar', "Rabi' al-Awwal", "Rabi' al-Thani",
-  'Jumada al-Ula', 'Jumada al-Akhirah', 'Rajab', "Sha'ban",
-  'Ramadan', 'Shawwal', "Dhu al-Qi'dah", 'Dhu al-Hijjah'
+// ── Zone geo-centre coords for auto-detect ─────────────────
+const ZONE_CENTRES = [
+  { id:'01', lat:6.93,  lng:79.95, label:'Colombo / Gampaha / Kalutara' },
+  { id:'02', lat:9.67,  lng:80.01, label:'Jaffna / Nallur' },
+  { id:'03', lat:9.00,  lng:80.48, label:'Mullaitivu / Kilinochchi / Vavuniya' },
+  { id:'04', lat:8.58,  lng:79.95, label:'Mannar / Puttalam' },
+  { id:'05', lat:8.30,  lng:80.45, label:'Anuradhapura / Polonnaruwa' },
+  { id:'06', lat:7.50,  lng:80.38, label:'Kurunegala' },
+  { id:'07', lat:7.30,  lng:80.64, label:'Kandy / Matale / Nuwara Eliya' },
+  { id:'08', lat:7.70,  lng:81.70, label:'Batticaloa / Ampara' },
+  { id:'09', lat:8.59,  lng:81.23, label:'Trincomalee' },
+  { id:'10', lat:6.99,  lng:81.06, label:'Badulla / Monaragala' },
+  { id:'11', lat:6.70,  lng:80.38, label:'Ratnapura / Kegalle' },
+  { id:'12', lat:6.05,  lng:80.22, label:'Galle / Matara' },
+  { id:'13', lat:6.12,  lng:81.12, label:'Hambantota' },
 ];
 
 // ── State ─────────────────────────────────────────────────
-let state = {
+const S = {
   zones: [],
-  currentData: null,
-  currentZoneId: '01',
-  currentMonthNum: new Date().getMonth() + 1,
-  currentYear: new Date().getFullYear(),
+  data: null,
+  zone: '01',
+  month: new Date().getMonth() + 1,
+  year: new Date().getFullYear(),
   today: new Date(),
-  countdownInterval: null,
+  tickInterval: null,
   clockInterval: null,
 };
 
 // ── Utility ───────────────────────────────────────────────
-function parseTime(timeStr) {
-  // Parses "4:52 AM" or "12:16 PM" into a Date for today
-  if (!timeStr) return null;
-  const [time, period] = timeStr.split(' ');
-  const [h, m] = time.split(':').map(Number);
-  let hours = h;
-  if (period === 'PM' && h !== 12) hours += 12;
-  if (period === 'AM' && h === 12) hours = 0;
+function pad(n) { return String(n).padStart(2,'0'); }
+
+function parseTime(str) {
+  if (!str) return null;
+  const m = str.match(/^(\d{1,2}):(\d{2})\s*([AP]M)$/i);
+  if (!m) return null;
+  let h = parseInt(m[1]), min = parseInt(m[2]);
+  const pm = m[3].toUpperCase() === 'PM';
+  if (pm && h !== 12) h += 12;
+  if (!pm && h === 12) h = 0;
   const d = new Date();
-  d.setHours(hours, m, 0, 0);
+  d.setHours(h, min, 0, 0);
   return d;
 }
 
-function subtractMinutes(timeStr, mins) {
+function minutesBefore(timeStr, mins) {
   const d = parseTime(timeStr);
   if (!d) return '';
   d.setMinutes(d.getMinutes() - mins);
-  let h = d.getHours();
-  const m = d.getMinutes();
-  const period = h >= 12 ? 'PM' : 'AM';
+  let h = d.getHours(), m = d.getMinutes();
+  const pm = h >= 12;
   if (h > 12) h -= 12;
   if (h === 0) h = 12;
-  return `${h}:${String(m).padStart(2, '0')} ${period}`;
+  return `${h}:${pad(m)} ${pm ? 'PM' : 'AM'}`;
 }
 
-function formatTimeTo12(date) {
-  let h = date.getHours();
-  const m = date.getMinutes();
-  const period = h >= 12 ? 'PM' : 'AM';
-  if (h > 12) h -= 12;
-  if (h === 0) h = 12;
-  return `${h}:${String(m).padStart(2, '0')} ${period}`;
+function splitTime(str) {
+  // Returns { hm: '4:48', ampm: 'AM' }
+  if (!str) return { hm: '--:--', ampm: '' };
+  const m = str.match(/^(\d{1,2}:\d{2})\s*([AP]M)$/i);
+  if (m) return { hm: m[1], ampm: m[2].toUpperCase() };
+  return { hm: str, ampm: '' };
 }
-
-function padZero(n) { return String(n).padStart(2, '0'); }
 
 function getHijriDate() {
   try {
     const now = new Date();
-    const hijri = new Intl.DateTimeFormat('en-TN-u-ca-islamic-umalqura', {
-      day: 'numeric', month: 'long', year: 'numeric'
-    }).format(now);
-    return hijri;
-  } catch {
-    // Fallback basic calculation (approximate)
-    return '';
-  }
+    const opts = { calendar: 'islamic-umalqura', day:'numeric', month:'long', year:'numeric' };
+    // Use Intl to get hijri day and month number
+    const dayFmt = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { day:'numeric' }).format(now);
+    const monthFmt = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { month:'numeric' }).format(now);
+    const yearFmt = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { year:'numeric' }).format(now);
+    const mIdx = parseInt(monthFmt) - 1;
+    return `${dayFmt} ${HIJRI_MONTHS[mIdx] || ''} ${yearFmt} AH`;
+  } catch { return ''; }
 }
 
-// ── Data Loading ──────────────────────────────────────────
+function distanceKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLng = (lng2-lng1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function nearestZone(lat, lng) {
+  let best = ZONE_CENTRES[0];
+  let bestDist = Infinity;
+  ZONE_CENTRES.forEach(z => {
+    const d = distanceKm(lat, lng, z.lat, z.lng);
+    if (d < bestDist) { bestDist = d; best = z; }
+  });
+  return best.id;
+}
+
+// ── Data ──────────────────────────────────────────────────
 async function loadZones() {
-  const res = await fetch(`${DATA_BASE}/zones.json`);
-  if (!res.ok) throw new Error('Failed to load zones');
-  return res.json();
+  const r = await fetch(`${DATA_BASE}/zones.json`);
+  return r.json();
+}
+async function loadData(zone, month) {
+  const key = `zone${String(zone).padStart(2,'0')}-${String(month).padStart(2,'0')}`;
+  const r = await fetch(`${DATA_BASE}/${key}.json`);
+  if (!r.ok) throw new Error(`No data: ${key}`);
+  return r.json();
 }
 
-async function loadPrayerData(zoneId, monthNum) {
-  const key = `zone${String(zoneId).padStart(2,'0')}-${String(monthNum).padStart(2,'0')}`;
-  const res = await fetch(`${DATA_BASE}/${key}.json`);
-  if (!res.ok) throw new Error(`No data for ${key}`);
-  return res.json();
-}
-
-// ── Get Today's Row ───────────────────────────────────────
-function getTodayRow(data) {
+function todayRow(data) {
   const today = new Date();
-  const day = today.getDate();
-  const monthAbbr = MONTH_NAMES[today.getMonth() + 1].slice(0, 3);
-  const dateStr = `${day}-${monthAbbr}`;
-  return data.days.find(r => r.date === dateStr) || null;
+  const str = `${today.getDate()}-${MONTH_SHORT[today.getMonth()+1]}`;
+  return data.days.find(d => d.date === str) || null;
 }
 
-// ── Determine Current & Next Prayer ──────────────────────
-function getCurrentAndNextPrayer(todayRow) {
-  if (!todayRow) return { current: null, next: null };
-
+// ── Current prayer logic ───────────────────────────────────
+function prayerStatus(row) {
+  // Returns { current, next }
+  if (!row) return { current: null, next: PRAYERS[0] };
   const now = new Date();
-  const prayers = PRAYER_ORDER.map(key => ({
-    key,
-    time: parseTime(todayRow[key])
-  })).filter(p => p.time);
-
-  let current = null;
-  let next = null;
-
-  for (let i = 0; i < prayers.length; i++) {
-    if (now >= prayers[i].time) {
-      current = prayers[i].key;
-      next = prayers[i + 1] || null;
+  const times = PRAYERS.map(k => ({ key: k, t: parseTime(row[k]) }));
+  let current = null, next = null;
+  for (let i = 0; i < times.length; i++) {
+    if (times[i].t && now >= times[i].t) {
+      current = times[i].key;
+      next = times[i+1]?.key || null;
     }
   }
-
-  // If before Fajr
-  if (!current) {
-    next = prayers[0] || null;
-  }
-
+  if (!current) next = times[0].key; // before fajr
   return { current, next };
 }
 
-// ── Render Prayer Cards ───────────────────────────────────
-function renderPrayerCards(todayRow, currentPrayer) {
-  const grid = document.getElementById('prayer-cards-grid');
-  if (!grid || !todayRow) return;
+// ── Render Header Date ─────────────────────────────────────
+function renderHeaderDate() {
+  const now = new Date();
+  const g = document.getElementById('header-gregorian');
+  const h = document.getElementById('header-hijri');
+  if (g) g.textContent = `${WEEK_DAYS[now.getDay()]}, ${now.getDate()} ${MONTH_SHORT[now.getMonth()+1]} ${now.getFullYear()}`;
+  if (h) h.textContent = getHijriDate();
+}
 
-  const imsakTime = subtractMinutes(todayRow.fajr, 2);
+// ── Render Hero ────────────────────────────────────────────
+function renderHero(data, row) {
+  const { current, next } = prayerStatus(row);
 
-  // Update imsak/iftar bar
-  const imsakEl = document.getElementById('imsak-time');
-  const iftarEl = document.getElementById('iftar-time');
-  if (imsakEl) imsakEl.textContent = imsakTime;
-  if (iftarEl) iftarEl.textContent = todayRow.magrib;
+  // Location name
+  const locEl = document.getElementById('hero-location-name');
+  const badgeEl = document.getElementById('hero-location-badge');
+  if (locEl && data) locEl.textContent = data.districts.join(' • ');
+  if (badgeEl && data) badgeEl.textContent = data.zoneName;
 
-  grid.innerHTML = '';
+  // Next prayer display
+  const labelEl = document.getElementById('hero-next-label');
+  const nameEl  = document.getElementById('hero-next-name');
+  const atEl    = document.getElementById('hero-next-at');
 
-  PRAYER_ORDER.forEach(key => {
-    const isActive = key === currentPrayer;
-    const isSunrise = key === 'sunrise';
-    const card = document.createElement('div');
-    card.className = `prayer-card${isActive ? ' active' : ''}${isSunrise ? ' sunrise-card' : ''}`;
-    card.dataset.prayer = key;
+  if (next && row) {
+    if (labelEl) labelEl.textContent = current ? 'Next Prayer' : 'First Prayer';
+    if (nameEl)  nameEl.textContent = PRAYER_LABEL[next];
+    if (atEl)    atEl.textContent = `at ${row[next]}`;
+  } else {
+    if (nameEl) nameEl.textContent = '—';
+    if (atEl)   atEl.textContent = 'No more prayers today';
+  }
+}
 
-    const timeStr = todayRow[key] || '';
-    const [timeOnly, ampm] = timeStr.split(' ');
+// ── Render Featured Card ───────────────────────────────────
+function renderFeatured(row, current, next) {
+  const show = current || next || 'fajr';
+  const el = {
+    badge:  document.getElementById('featured-badge'),
+    icon:   document.getElementById('featured-icon'),
+    name:   document.getElementById('featured-name'),
+    time:   document.getElementById('featured-time'),
+    ampm:   document.getElementById('featured-ampm'),
+    sub:    document.getElementById('featured-sub'),
+  };
 
-    card.innerHTML = `
-      <div class="now-badge">Now</div>
-      <div class="prayer-icon">${PRAYER_ICONS[key]}</div>
-      <div class="prayer-name">${PRAYER_LABELS[key]}</div>
-      <div class="prayer-time">${timeOnly || '--:--'}<span class="prayer-time-ampm"> ${ampm || ''}</span></div>
+  if (el.icon) el.icon.textContent = PRAYER_ICON[show];
+  if (el.name) el.name.textContent = PRAYER_LABEL[show];
+
+  const timeStr = row?.[show] || '';
+  const { hm, ampm } = splitTime(timeStr);
+  if (el.time) el.time.childNodes[0].textContent = hm;
+  if (el.ampm) el.ampm.textContent = ' ' + ampm;
+
+  if (el.badge) {
+    if (current === show) {
+      el.badge.textContent = 'NOW';
+      el.badge.style.display = '';
+    } else if (next === show) {
+      el.badge.textContent = 'NEXT';
+      el.badge.style.display = '';
+    } else {
+      el.badge.style.display = 'none';
+    }
+  }
+
+  // Sub-text: time to sunrise if Fajr, or blank
+  if (el.sub) {
+    if (show === 'fajr' && row?.sunrise) {
+      const fajrT = parseTime(row.fajr);
+      const sunT  = parseTime(row.sunrise);
+      if (fajrT && sunT) {
+        const diff = Math.round((sunT - fajrT) / 60000);
+        el.sub.textContent = `Sunrise in ${diff} min`;
+      }
+    } else {
+      el.sub.textContent = '';
+    }
+  }
+}
+
+// ── Render Prayer List ─────────────────────────────────────
+function renderPrayerList(row, current, next) {
+  const panel = document.getElementById('prayer-list');
+  if (!panel) return;
+  if (!row) {
+    panel.innerHTML = '<div class="loading-block"><span>No data for today</span></div>';
+    return;
+  }
+
+  panel.innerHTML = '';
+
+  PRAYERS.forEach(key => {
+    const isNow  = key === current;
+    const isNext = key === next;
+    const isPast = !isNow && !isNext && current && PRAYERS.indexOf(key) < PRAYERS.indexOf(current);
+
+    const row_ = document.createElement('div');
+    row_.className = `prayer-row${isNow?' is-current':''}${isNext?' is-next':''}${isPast?' is-past':''}`;
+    row_.dataset.prayer = key;
+
+    const { hm, ampm } = splitTime(row[key] || '');
+    const badge = isNow
+      ? '<span class="pr-badge pr-badge-now">Now</span>'
+      : isNext
+        ? '<span class="pr-badge pr-badge-next">Next</span>'
+        : '';
+
+    row_.innerHTML = `
+      <span class="pr-icon">${PRAYER_ICON[key]}</span>
+      <span class="pr-name">${PRAYER_LABEL[key]}</span>
+      ${badge}
+      <span class="pr-time">${hm}<span class="pr-time-ampm"> ${ampm}</span></span>
     `;
-    grid.appendChild(card);
+    panel.appendChild(row_);
   });
 }
 
-// ── Render Countdown ──────────────────────────────────────
-function updateCountdown(todayRow, nextPrayer) {
-  const labelEl = document.getElementById('next-prayer-name');
-  const timerEl = document.getElementById('countdown-timer');
-  if (!labelEl || !timerEl || !nextPrayer || !todayRow) return;
+// ── Render Imsak / Iftar ───────────────────────────────────
+function renderImsakIftar(row) {
+  const imsakEl = document.getElementById('imsak-display');
+  const iftarEl = document.getElementById('iftar-display');
+  if (!row) return;
 
-  const nextTime = parseTime(todayRow[nextPrayer.key]);
-  if (!nextTime) return;
+  const imsak = minutesBefore(row.fajr, 2);
+  const { hm: ih, ampm: ia } = splitTime(imsak);
+  const { hm: mh, ampm: ma } = splitTime(row.magrib || '');
+
+  if (imsakEl) imsakEl.innerHTML = `${ih}<span class="imsak-value-ampm"> ${ia}</span>`;
+  if (iftarEl) iftarEl.innerHTML = `${mh}<span class="imsak-value-ampm"> ${ma}</span>`;
+}
+
+// ── Render Countdown ──────────────────────────────────────
+function renderCountdown(row, next) {
+  const timerEl = document.getElementById('hero-timer');
+  if (!timerEl || !next || !row) { if (timerEl) timerEl.textContent = '--:--:--'; return; }
+
+  const nextT = parseTime(row[next]);
+  if (!nextT) return;
 
   const now = new Date();
-  let diff = nextTime - now;
-  if (diff < 0) diff += 24 * 60 * 60 * 1000;
+  let diff = nextT - now;
+  if (diff < 0) diff += 86400000;
 
   const h = Math.floor(diff / 3600000);
   const m = Math.floor((diff % 3600000) / 60000);
   const s = Math.floor((diff % 60000) / 1000);
-
-  labelEl.textContent = PRAYER_LABELS[nextPrayer.key];
-  timerEl.textContent = `${padZero(h)}:${padZero(m)}:${padZero(s)}`;
+  timerEl.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
 }
 
-// ── Render Weekly Table ───────────────────────────────────
-function renderWeeklyTable(data) {
+// ── Render Weekly Table ────────────────────────────────────
+function renderWeekly(data) {
   const tbody = document.getElementById('weekly-tbody');
   if (!tbody || !data) return;
 
   const today = new Date();
-  const todayDay = today.getDate();
+  const todayNum = today.getDate();
   const todayMonth = today.getMonth() + 1;
+  const thisMonthAbbr = MONTH_SHORT[todayMonth];
 
-  // Get 7 days: today +/- few days
-  const todayMonthAbbr = MONTH_NAMES[todayMonth].slice(0, 3);
-
-  // Filter days around today
-  let todayIdx = data.days.findIndex(r => r.date === `${todayDay}-${todayMonthAbbr}`);
-  if (todayIdx === -1) todayIdx = 0;
-
-  const start = Math.max(0, todayIdx - 1);
-  const end = Math.min(data.days.length, start + 7);
-  const weekDays = data.days.slice(start, end);
+  // Find today index
+  let idx = data.days.findIndex(d => d.date === `${todayNum}-${thisMonthAbbr}`);
+  if (idx < 0) idx = 0;
+  const start = Math.max(0, idx - 1);
+  const slice = data.days.slice(start, start + 7);
 
   tbody.innerHTML = '';
-
-  weekDays.forEach((row, idx) => {
-    const [dayNum, monthAbbr] = row.date.split('-');
-    const isToday = parseInt(dayNum) === todayDay && data.monthNum === todayMonth;
-
-    const dayOfWeek = new Date(data.year, data.monthNum - 1, parseInt(dayNum)).getDay();
-    const dayName = WEEK_DAYS[dayOfWeek];
-
+  slice.forEach(day => {
+    const [dNum, dMon] = day.date.split('-');
+    const isToday = parseInt(dNum) === todayNum && data.monthNum === todayMonth;
+    const dow = new Date(data.year, data.monthNum - 1, parseInt(dNum)).getDay();
     const tr = document.createElement('tr');
     if (isToday) tr.className = 'today-row';
-
     tr.innerHTML = `
-      <td>
-        <strong>${dayName}</strong>, ${row.date}
-        ${isToday ? '<span class="today-indicator">Today</span>' : ''}
-      </td>
-      <td>${row.fajr}</td>
-      <td>${row.sunrise}</td>
-      <td>${row.luhr}</td>
-      <td>${row.asr}</td>
-      <td>${row.magrib}</td>
-      <td>${row.isha}</td>
+      <td><strong>${WEEK_DAYS[dow]}</strong>, ${day.date}${isToday ? '<span class="today-chip">Today</span>' : ''}</td>
+      <td>${day.fajr}</td>
+      <td>${day.sunrise}</td>
+      <td>${day.luhr}</td>
+      <td>${day.asr}</td>
+      <td>${day.magrib}</td>
+      <td>${day.isha}</td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-// ── Render Full Monthly Table ─────────────────────────────
-function renderMonthlyTable(data, selectedMonthNum) {
+// ── Render Monthly Table ───────────────────────────────────
+function renderMonthly(data) {
   const tbody = document.getElementById('monthly-tbody');
-  const monthTitle = document.getElementById('monthly-month-title');
-  const zoneLabel = document.getElementById('monthly-zone-label');
-
+  const title = document.getElementById('monthly-title');
+  const zone  = document.getElementById('monthly-zone');
   if (!tbody || !data) return;
 
-  if (monthTitle) monthTitle.textContent = `${data.monthName} ${data.year}`;
-  if (zoneLabel) zoneLabel.textContent = `${data.zoneName} — ${data.districts.join(', ')}`;
+  if (title) title.textContent = `${data.monthName} ${data.year}`;
+  if (zone)  zone.textContent  = `${data.zoneName} — ${data.districts.join(', ')}`;
 
   const today = new Date();
-  const todayDay = today.getDate();
+  const todayNum = today.getDate();
   const todayMonth = today.getMonth() + 1;
-  const todayMonthAbbr = MONTH_NAMES[todayMonth].slice(0, 3);
+  const todayAbbr = MONTH_SHORT[todayMonth];
 
   tbody.innerHTML = '';
-
-  data.days.forEach(row => {
-    const [dayNum, monthAbbr] = row.date.split('-');
-    const isToday = parseInt(dayNum) === todayDay && data.monthNum === todayMonth;
-    const dayOfWeek = new Date(data.year, data.monthNum - 1, parseInt(dayNum)).getDay();
-    const dayName = WEEK_DAYS[dayOfWeek];
-    const isFriday = dayOfWeek === 5;
-
+  data.days.forEach(day => {
+    const [dNum, dMon] = day.date.split('-');
+    const isToday = parseInt(dNum) === todayNum && data.monthNum === todayMonth;
+    const dow = new Date(data.year, data.monthNum - 1, parseInt(dNum)).getDay();
+    const isFri = dow === 5;
     const tr = document.createElement('tr');
-    if (isToday) tr.className = 'today-row-monthly';
-    if (isFriday) tr.style.fontWeight = '600';
-
+    if (isToday) tr.className = 'today-monthly';
+    if (isFri) tr.classList.add('is-friday');
     tr.innerHTML = `
-      <td>
-        <strong>${dayName}</strong>, ${row.date}
-        ${isToday ? '<span class="today-indicator">Today</span>' : ''}
-      </td>
-      <td>${row.fajr}</td>
-      <td>${row.sunrise}</td>
-      <td>${row.luhr}</td>
-      <td>${row.asr}</td>
-      <td>${row.magrib}</td>
-      <td>${row.isha}</td>
+      <td><strong>${WEEK_DAYS[dow]}</strong>, ${day.date}${isToday ? '<span class="today-chip">Today</span>' : ''}</td>
+      <td>${day.fajr}</td>
+      <td>${day.sunrise}</td>
+      <td>${day.luhr}</td>
+      <td>${day.asr}</td>
+      <td>${day.magrib}</td>
+      <td>${day.isha}</td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-// ── Render Apartment Table ────────────────────────────────
-function renderAptTable(data) {
+// ── Render Apartment Table ─────────────────────────────────
+function renderApt(data) {
   const tbody = document.getElementById('apt-tbody');
   if (!tbody || !data?.apartmentDiff) return;
-
   const apt = data.apartmentDiff;
+  const fmt = (n) => n < 0 ? `−${Math.abs(n)} min` : `+${n} min`;
   tbody.innerHTML = `
     <tr>
-      <td>${apt.lowRise.stories}</td>
-      <td>${apt.lowRise.heightM}</td>
-      <td class="apt-diff-neg">${apt.lowRise.fajr}</td>
-      <td class="apt-diff-neg">${apt.lowRise.sunrise}</td>
-      <td class="apt-diff-pos">+${Math.abs(apt.lowRise.magrib)}</td>
-      <td class="apt-diff-pos">+${Math.abs(apt.lowRise.isha)}</td>
+      <td>${apt.lowRise.stories}</td><td>${apt.lowRise.heightM}</td>
+      <td class="diff-neg">${fmt(apt.lowRise.fajr)}</td>
+      <td class="diff-neg">${fmt(apt.lowRise.sunrise)}</td>
+      <td class="diff-pos">${fmt(apt.lowRise.magrib)}</td>
+      <td class="diff-pos">${fmt(apt.lowRise.isha)}</td>
     </tr>
     <tr>
-      <td>${apt.highRise.stories}</td>
-      <td>${apt.highRise.heightM}</td>
-      <td class="apt-diff-neg">${apt.highRise.fajr}</td>
-      <td class="apt-diff-neg">${apt.highRise.sunrise}</td>
-      <td class="apt-diff-pos">+${Math.abs(apt.highRise.magrib)}</td>
-      <td class="apt-diff-pos">+${Math.abs(apt.highRise.isha)}</td>
+      <td>${apt.highRise.stories}</td><td>${apt.highRise.heightM}</td>
+      <td class="diff-neg">${fmt(apt.highRise.fajr)}</td>
+      <td class="diff-neg">${fmt(apt.highRise.sunrise)}</td>
+      <td class="diff-pos">${fmt(apt.highRise.magrib)}</td>
+      <td class="diff-pos">${fmt(apt.highRise.isha)}</td>
     </tr>
   `;
 }
 
-// ── Populate Zone Selector ────────────────────────────────
-function populateZoneSelector(zones) {
+// ── Share ──────────────────────────────────────────────────
+function buildShareText(data, day) {
+  if (!data || !day) return '';
+  const date = new Date(data.year, data.monthNum - 1, parseInt(day.date));
+  const dowName = WEEK_FULL[date.getDay()];
+  const islamicDay = ISLAMIC_DAYS[date.getDay()];
+  const hijri = getHijriDate();
+  const imsak = minutesBefore(day.fajr, 2);
+  const loc = data.districts.join(', ');
+
+  const lines = [
+    `🕌 SALAH TIME 🇱🇰`,
+    `📍 ${loc}`,
+    ``,
+    `${dowName} / ${islamicDay}`,
+    `${day.date.replace('-',' ')} ${data.monthName} ${data.year}`,
+    hijri ? `${hijri}` : '',
+    ``,
+    `Fajr      ${day.fajr}`,
+    `Sunrise   ${day.sunrise}`,
+    `Zuhr      ${day.luhr}`,
+    `Asr       ${day.asr}`,
+    `Maghrib   ${day.magrib}`,
+    `Isha      ${day.isha}`,
+    ``,
+    `📌 Imsak (Sahr End): ${imsak}`,
+    ``,
+    `Source: ACJU Official Timetable`,
+    `www.acju.lk`,
+  ].filter(l => l !== null);
+  return lines.join('\n');
+}
+
+function buildMonthShareText(data) {
+  if (!data) return '';
+  const header = `🕌 SALAH TIMES 🇱🇰 — ${data.monthName} ${data.year}\n📍 ${data.districts.join(', ')}\nSource: ACJU | www.acju.lk\n`;
+  const rows = data.days.map(d => {
+    const dow = new Date(data.year, data.monthNum-1, parseInt(d.date)).getDay();
+    const day = WEEK_DAYS[dow];
+    return `${d.date.padEnd(6)} ${day}  Fajr:${d.fajr}  Zuhr:${d.luhr}  Asr:${d.asr}  Magrib:${d.magrib}  Isha:${d.isha}`;
+  }).join('\n');
+  return header + '\n' + rows;
+}
+
+function openShareModal(text) {
+  const overlay = document.getElementById('share-modal-overlay');
+  const preview = document.getElementById('share-preview-text');
+  if (!overlay || !preview) return;
+  preview.textContent = text;
+  overlay._shareText = text;
+  overlay.classList.add('visible');
+}
+
+function closeShareModal() {
+  document.getElementById('share-modal-overlay')?.classList.remove('visible');
+}
+
+// ── Selectors ─────────────────────────────────────────────
+function populateZones(zones) {
   const sel = document.getElementById('zone-selector');
   if (!sel) return;
   sel.innerHTML = '';
   zones.forEach(z => {
     const opt = document.createElement('option');
     opt.value = z.id;
-    opt.textContent = `${z.name} — ${z.districts.join(', ')}`;
-    if (z.id === state.currentZoneId) opt.selected = true;
+    opt.textContent = `Zone ${z.id} — ${z.districts.join(', ')}`;
+    if (z.id === S.zone) opt.selected = true;
     sel.appendChild(opt);
   });
 }
 
-// ── Populate Month Selector ───────────────────────────────
-function populateMonthSelector() {
+function populateMonths() {
   const sel = document.getElementById('month-selector');
   if (!sel) return;
   sel.innerHTML = '';
@@ -341,138 +477,154 @@ function populateMonthSelector() {
     const opt = document.createElement('option');
     opt.value = i;
     opt.textContent = MONTH_NAMES[i];
-    if (i === state.currentMonthNum) opt.selected = true;
+    if (i === S.month) opt.selected = true;
     sel.appendChild(opt);
   }
 }
 
-// ── Update Header Date ────────────────────────────────────
-function updateHeaderDate() {
-  const gEl = document.getElementById('header-date-gregorian');
-  const hEl = document.getElementById('header-date-hijri');
-  if (!gEl) return;
-
-  const now = new Date();
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  gEl.textContent = `${days[now.getDay()]}, ${now.getDate()} ${MONTH_NAMES[now.getMonth()+1]} ${now.getFullYear()}`;
-
-  if (hEl) {
-    const hijri = getHijriDate();
-    hEl.textContent = hijri || '';
-  }
+// ── URL params ─────────────────────────────────────────────
+function pushParams() {
+  const url = new URL(location.href);
+  url.searchParams.set('zone', S.zone);
+  url.searchParams.set('month', S.month);
+  history.replaceState({}, '', url);
 }
 
-// ── Update Location Display ───────────────────────────────
-function updateLocationDisplay(data) {
-  const h1 = document.getElementById('location-title');
-  const meta = document.getElementById('location-meta');
-  if (!h1 || !data) return;
-
-  h1.textContent = `Prayer Times — ${data.districts.join(', ')}`;
-  if (meta) {
-    meta.innerHTML = `
-      Sri Lanka &bull; ${data.zoneName}
-      &bull; <span class="badge-source">✓ ACJU Official</span>
-    `;
-  }
-}
-
-// ── Main Render ───────────────────────────────────────────
-async function renderAll(zoneId, monthNum, isInitial = false) {
-  const mainEl = document.getElementById('main-content-area');
+// ── Full render ────────────────────────────────────────────
+async function renderAll() {
+  const panel = document.getElementById('prayer-list');
+  if (panel) panel.innerHTML = '<div class="loading-block"><div class="spinner"></div><span>Loading…</span></div>';
 
   try {
-    // Show loading for data sections
-    document.getElementById('prayer-cards-grid').innerHTML =
-      '<div class="loading-overlay" style="grid-column:1/-1"><div class="spinner"></div></div>';
+    const data = await loadData(S.zone, S.month);
+    S.data = data;
 
-    const data = await loadPrayerData(zoneId, monthNum);
-    state.currentData = data;
+    const row = todayRow(data);
+    const { current, next } = prayerStatus(row);
 
-    // Today's prayer status
-    const todayRow = getTodayRow(data);
-    const { current, next } = getCurrentAndNextPrayer(todayRow);
+    renderHero(data, row);
+    renderFeatured(row, current, next);
+    renderPrayerList(row, current, next);
+    renderImsakIftar(row);
+    renderWeekly(data);
+    renderMonthly(data);
+    renderApt(data);
 
-    // Render all sections
-    renderPrayerCards(todayRow, current);
-    renderWeeklyTable(data);
-    renderMonthlyTable(data, monthNum);
-    renderAptTable(data);
-    updateLocationDisplay(data);
-
-    // Start/restart countdown
-    clearInterval(state.countdownInterval);
-    if (next && todayRow) {
-      updateCountdown(todayRow, next);
-      const nextPrayerLabel = document.getElementById('next-prayer-name-wrap');
-      if (nextPrayerLabel) nextPrayerLabel.classList.remove('hidden');
-      state.countdownInterval = setInterval(() => {
-        const newData = state.currentData;
-        const newTodayRow = getTodayRow(newData);
-        const { current: c, next: n } = getCurrentAndNextPrayer(newTodayRow);
-        if (n) updateCountdown(newTodayRow, n);
-        // Re-render cards only if current prayer changed
-        if (c !== current) renderPrayerCards(newTodayRow, c);
-      }, 1000);
-    }
+    // Start tick
+    clearInterval(S.tickInterval);
+    S.tickInterval = setInterval(() => {
+      const r = todayRow(S.data);
+      if (!r) return;
+      const { current: c, next: n } = prayerStatus(r);
+      renderCountdown(r, n);
+      // Re-render prayer list only if status changed
+      const featuredEl = document.querySelector('.prayer-featured');
+      if (featuredEl && featuredEl.dataset.current !== c) {
+        featuredEl.dataset.current = c || '';
+        renderFeatured(r, c, n);
+        renderPrayerList(r, c, n);
+        renderHero(S.data, r);
+      }
+    }, 1000);
+    // Initial tick
+    renderCountdown(row, next);
 
   } catch (err) {
-    console.error('Error loading prayer data:', err);
-    document.getElementById('prayer-cards-grid').innerHTML =
-      `<div class="error-msg" style="grid-column:1/-1">
-        Could not load prayer times. Please check your connection or select a different zone/month.
-        <br><small>${err.message}</small>
-      </div>`;
+    console.error(err);
+    if (panel) panel.innerHTML = `<div class="loading-block" style="color:#B82020;">Failed to load data.<br><small>${err.message}</small></div>`;
   }
+}
+
+// ── Auto-location ──────────────────────────────────────────
+function handleLocate() {
+  if (!navigator.geolocation) { alert('Geolocation is not supported by your browser.'); return; }
+  const btn = document.getElementById('btn-locate');
+  if (btn) { btn.textContent = '⏳ Locating…'; btn.classList.add('locating'); }
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const zone = nearestZone(pos.coords.latitude, pos.coords.longitude);
+      S.zone = zone;
+      const sel = document.getElementById('zone-selector');
+      if (sel) sel.value = zone;
+      renderAll();
+      pushParams();
+      if (btn) { btn.textContent = '📍 Locate Me'; btn.classList.remove('locating'); }
+    },
+    err => {
+      alert('Could not detect location. Please select your zone manually.');
+      if (btn) { btn.textContent = '📍 Locate Me'; btn.classList.remove('locating'); }
+    },
+    { timeout: 8000, maximumAge: 300000 }
+  );
 }
 
 // ── Init ──────────────────────────────────────────────────
 async function init() {
-  // Detect user's preferred zone from URL params
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('zone')) state.currentZoneId = params.get('zone').padStart(2, '0');
-  if (params.get('month')) state.currentMonthNum = parseInt(params.get('month'));
+  // URL params
+  const p = new URLSearchParams(location.search);
+  if (p.get('zone'))  S.zone  = p.get('zone').padStart(2,'0');
+  if (p.get('month')) S.month = parseInt(p.get('month'));
 
-  updateHeaderDate();
+  renderHeaderDate();
+  S.clockInterval = setInterval(renderHeaderDate, 30000);
 
-  // Load zones metadata
+  // Load zones
   try {
     const { zones } = await loadZones();
-    state.zones = zones;
-    populateZoneSelector(zones);
-  } catch (e) {
-    console.warn('Zones metadata unavailable, using defaults');
-  }
+    S.zones = zones;
+    populateZones(zones);
+  } catch {}
+  populateMonths();
 
-  populateMonthSelector();
-
-  // Zone change
+  // Event listeners
   document.getElementById('zone-selector')?.addEventListener('change', e => {
-    state.currentZoneId = e.target.value;
-    renderAll(state.currentZoneId, state.currentMonthNum);
-    updateUrlParams();
+    S.zone = e.target.value;
+    renderAll(); pushParams();
   });
-
-  // Month change
   document.getElementById('month-selector')?.addEventListener('change', e => {
-    state.currentMonthNum = parseInt(e.target.value);
-    renderAll(state.currentZoneId, state.currentMonthNum);
-    updateUrlParams();
+    S.month = parseInt(e.target.value);
+    renderAll(); pushParams();
+  });
+  document.getElementById('btn-locate')?.addEventListener('click', handleLocate);
+
+  // Share buttons
+  document.getElementById('btn-share-today')?.addEventListener('click', () => {
+    const row = todayRow(S.data);
+    if (!row) { alert('No data loaded yet.'); return; }
+    openShareModal(buildShareText(S.data, row));
+  });
+  document.getElementById('btn-share-month')?.addEventListener('click', () => {
+    if (!S.data) { alert('No data loaded yet.'); return; }
+    openShareModal(buildMonthShareText(S.data));
   });
 
-  // Clock update
-  state.clockInterval = setInterval(updateHeaderDate, 60000);
+  // Share modal
+  document.getElementById('btn-modal-close')?.addEventListener('click', closeShareModal);
+  document.getElementById('share-modal-overlay')?.addEventListener('click', e => {
+    if (e.target.id === 'share-modal-overlay') closeShareModal();
+  });
+  document.getElementById('btn-copy')?.addEventListener('click', async () => {
+    const text = document.getElementById('share-modal-overlay')?._shareText || '';
+    try {
+      await navigator.clipboard.writeText(text);
+      const btn = document.getElementById('btn-copy');
+      if (btn) { btn.textContent = '✓ Copied!'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = '📋 Copy Text'; btn.classList.remove('copied'); }, 2000); }
+    } catch { alert('Could not copy — please select and copy manually.'); }
+  });
+  document.getElementById('btn-share-native')?.addEventListener('click', async () => {
+    const text = document.getElementById('share-modal-overlay')?._shareText || '';
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Sri Lanka Prayer Times', text }); }
+      catch {}
+    } else {
+      // Fallback: WhatsApp
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }
+  });
 
-  // Load initial data
-  await renderAll(state.currentZoneId, state.currentMonthNum, true);
+  // Render
+  await renderAll();
 }
 
-function updateUrlParams() {
-  const url = new URL(window.location);
-  url.searchParams.set('zone', state.currentZoneId);
-  url.searchParams.set('month', state.currentMonthNum);
-  window.history.replaceState({}, '', url);
-}
-
-// ── Boot ──────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', init);

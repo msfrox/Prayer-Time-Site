@@ -3,101 +3,172 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sri Lanka Prayer Times – ACJU Official Timetable</title>
+  <title>Sri Lanka Prayer Times – ACJU Official Timetable 2026</title>
   <meta name="description" content="Official Islamic prayer timetables for all districts of Sri Lanka, published by All Ceylon Jamiyyathul Ulama (ACJU). Accurate Fajr, Zuhr, Asr, Maghrib and Isha times." />
-  <meta name="keywords" content="Sri Lanka prayer times, Islamic prayer timetable, ACJU, Fajr, Zuhr, Asr, Maghrib, Isha, Colombo, Jaffna, Kandy" />
-  <meta name="theme-color" content="#2B3D14" />
-
-  <!-- Open Graph -->
+  <meta name="theme-color" content="#111C09" />
   <meta property="og:title" content="Sri Lanka Prayer Times – ACJU Official" />
-  <meta property="og:description" content="Accurate, district-wise Islamic prayer timetables for all of Sri Lanka." />
+  <meta property="og:description" content="Accurate district-wise Islamic prayer timetables for all of Sri Lanka." />
   <meta property="og:type" content="website" />
-
   <link rel="stylesheet" href="assets/css/style.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕌</text></svg>" />
 </head>
 <body>
 
-<!-- ── Site Header ──────────────────────────────────────── -->
+<!-- ══════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════ -->
 <header class="site-header">
-  <div class="header-inner">
+  <div class="header-top">
     <a class="header-logo" href="./">
-      <div class="logo-icon">🕌</div>
-      <div class="logo-text">
-        <span class="logo-title">Sri Lanka Prayer Times</span>
-        <span class="logo-sub">ACJU Official Timetable 2026</span>
+      <div class="logo-emblem">🕌</div>
+      <div class="logo-copy">
+        <div class="logo-title">Sri Lanka Prayer Times</div>
+        <div class="logo-sub">ACJU Official Timetable 2026</div>
       </div>
     </a>
-    <div class="header-date-display">
-      <div class="header-date-gregorian" id="header-date-gregorian">Loading…</div>
-      <div class="header-date-hijri" id="header-date-hijri"></div>
+    <div class="header-date">
+      <div class="header-gregorian" id="header-gregorian">Loading…</div>
+      <div class="header-hijri" id="header-hijri"></div>
     </div>
   </div>
 
-  <!-- Zone & Month Selectors -->
-  <div class="zone-bar">
-    <div class="zone-bar-inner">
-      <span style="color:rgba(255,255,255,0.6);font-size:12px;">📍</span>
-      <div class="zone-select-wrap">
-        <span>Zone / District:</span>
-        <select id="zone-selector" aria-label="Select Zone">
-          <option value="01">Zone 01 — Colombo, Gampaha, Kalutara</option>
-        </select>
-      </div>
-      <div class="month-select-wrap">
-        <span>Month:</span>
-        <select id="month-selector" aria-label="Select Month">
-          <option value="4">April</option>
-        </select>
-      </div>
+  <div class="selectors-bar">
+    <div class="sel-group">
+      <span class="sel-label">Zone / District</span>
+      <select id="zone-selector" aria-label="Select Zone or District"></select>
     </div>
+    <div class="sel-group">
+      <span class="sel-label">Month</span>
+      <select id="month-selector" aria-label="Select Month"></select>
+    </div>
+    <button class="btn-locate" id="btn-locate" title="Auto-detect my location">
+      📍 Locate Me
+    </button>
   </div>
 </header>
 
-<!-- ── Main Content ──────────────────────────────────────── -->
-<main class="main-content" id="main-content-area">
-
-  <!-- Today's Section -->
-  <section class="today-section">
-    <div class="today-location">
-      <h1 id="location-title">Prayer Times — Sri Lanka</h1>
-      <div class="location-meta" id="location-meta">
-        Sri Lanka &bull; <span class="badge-source">✓ ACJU Official</span>
-      </div>
-      <div class="imsak-iftar-bar">
-        <span>Imsak (Sahr End):</span>
-        <strong id="imsak-time">--:--</strong>
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-        <span>Iftar (Maghrib):</span>
-        <strong id="iftar-time">--:--</strong>
-      </div>
+<!-- ══════════════════════════════════════════
+     HERO — Next prayer countdown
+══════════════════════════════════════════ -->
+<section class="hero-section">
+  <div class="hero-inner">
+    <div class="hero-location">
+      <span class="hero-location-name" id="hero-location-name">Sri Lanka</span>
+      <span class="hero-location-badge" id="hero-location-badge">ACJU Official</span>
     </div>
 
-    <!-- Prayer Cards -->
-    <div class="prayer-cards-grid" id="prayer-cards-grid">
-      <!-- Populated by JS -->
-      <div class="loading-overlay" style="grid-column:1/-1">
-        <div class="spinner"></div>
-        <span>Loading prayer times…</span>
+    <div class="hero-body">
+      <div class="hero-countdown-side">
+        <div class="hero-next-label" id="hero-next-label">Next Prayer</div>
+        <div class="hero-next-name" id="hero-next-name">—</div>
+        <div class="hero-next-at" id="hero-next-at">Loading…</div>
+      </div>
+      <div class="hero-timer-side">
+        <div class="hero-timer-label">Time remaining</div>
+        <div class="hero-timer" id="hero-timer">--:--:--</div>
       </div>
     </div>
+  </div>
+</section>
 
-    <!-- Countdown -->
-    <div class="countdown-bar">
-      <div class="countdown-label" id="next-prayer-name-wrap">
-        Next prayer: <strong id="next-prayer-name">—</strong>
+<!-- ══════════════════════════════════════════
+     MAIN CONTENT
+══════════════════════════════════════════ -->
+<main class="main-content">
+
+  <!-- ── Prayer Cards ── -->
+  <div class="prayers-pullup">
+    <div class="prayers-layout">
+
+      <!-- Featured (current) prayer -->
+      <div class="prayer-featured" id="prayer-featured">
+        <span class="featured-now-badge" id="featured-badge">NOW</span>
+        <div class="featured-icon" id="featured-icon">🌙</div>
+        <div class="featured-name" id="featured-name">FAJR</div>
+        <div class="featured-time" id="featured-time">
+          --:--<span class="featured-time-ampm" id="featured-ampm"> AM</span>
+        </div>
+        <div class="featured-sub" id="featured-sub"></div>
       </div>
-      <div class="countdown-timer" id="countdown-timer">--:--:--</div>
-    </div>
-  </section>
 
-  <!-- This Week -->
-  <section class="weekly-section">
-    <div class="section-header">
-      <h2 class="section-title">This Week</h2>
+      <!-- Other prayers list -->
+      <div class="prayer-list-panel" id="prayer-list">
+        <div class="loading-block">
+          <div class="spinner"></div>
+          <span>Loading prayer times…</span>
+        </div>
+      </div>
+
     </div>
-    <div class="prayer-table-wrap">
-      <table class="prayer-table" aria-label="Weekly prayer times">
+  </div>
+
+  <!-- ── Imsak / Iftar (below prayers) ── -->
+  <div class="imsak-strip">
+    <div class="imsak-item">
+      <span class="imsak-icon">🌙</span>
+      <div>
+        <div class="imsak-label">Imsak (Sahr End)</div>
+        <div class="imsak-value" id="imsak-display">
+          --:--<span class="imsak-value-ampm"> AM</span>
+        </div>
+      </div>
+    </div>
+    <div class="imsak-divider"></div>
+    <div class="imsak-item">
+      <span class="imsak-icon">🌅</span>
+      <div>
+        <div class="imsak-label">Iftar (Maghrib)</div>
+        <div class="imsak-value" id="iftar-display">
+          --:--<span class="imsak-value-ampm"> PM</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Share / Week header ── -->
+  <div class="share-bar">
+    <button class="btn-share" id="btn-share-today" title="Share today's prayer times">
+      ↗ Share Today's Times
+    </button>
+  </div>
+
+  <!-- ── Weekly Table ── -->
+  <div class="section-hd">
+    <h2 class="section-title">This Week</h2>
+  </div>
+  <div class="table-wrap" style="margin-bottom:16px;">
+    <table class="prayer-table" aria-label="Weekly prayer times">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Fajr</th>
+          <th>Sunrise</th>
+          <th>Zuhr</th>
+          <th>Asr</th>
+          <th>Maghrib</th>
+          <th>Isha</th>
+        </tr>
+      </thead>
+      <tbody id="weekly-tbody">
+        <tr><td colspan="7" style="text-align:center;padding:24px;color:#aaa;">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Full Monthly Table ── -->
+  <div class="section-hd">
+    <h2 class="section-title">Full Monthly Timetable</h2>
+    <button class="btn-share" id="btn-share-month" title="Share this month's timetable">
+      ↗ Share Month
+    </button>
+  </div>
+  <div class="monthly-card" style="margin-bottom:16px;">
+    <div class="monthly-card-header">
+      <div class="monthly-title" id="monthly-title">April 2026</div>
+      <div class="monthly-zone-badge" id="monthly-zone">Zone 01</div>
+    </div>
+    <div class="monthly-table-scroll">
+      <table class="monthly-table" aria-label="Monthly prayer timetable">
         <thead>
           <tr>
             <th>Date</th>
@@ -109,99 +180,68 @@
             <th>Isha</th>
           </tr>
         </thead>
-        <tbody id="weekly-tbody">
-          <tr><td colspan="7" style="text-align:center;padding:20px;color:#888;">Loading…</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- Full Monthly Table -->
-  <section class="monthly-section">
-    <div class="monthly-header">
-      <h2 id="monthly-month-title">Monthly Prayer Timetable</h2>
-      <div class="zone-badge" id="monthly-zone-label">Zone 01</div>
-    </div>
-    <div class="monthly-table-wrap">
-      <table class="monthly-table" aria-label="Monthly prayer timetable">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Fajr</th>
-            <th>Sunrise</th>
-            <th>Zuhr (Luhr)</th>
-            <th>Asr</th>
-            <th>Maghrib</th>
-            <th>Isha</th>
-          </tr>
-        </thead>
         <tbody id="monthly-tbody">
-          <tr><td colspan="7" style="text-align:center;padding:30px;color:#888;">Loading…</td></tr>
+          <tr><td colspan="7" style="text-align:center;padding:28px;color:#aaa;">Loading…</td></tr>
         </tbody>
       </table>
     </div>
-  </section>
-
-  <!-- Sahr / Imsak Note -->
-  <div class="footer-note">
-    <strong>📝 Note:</strong>
-    Kindly requested to set the end of Sahr (Imsak) <strong>two minutes before Fajr time</strong>.
-    The times shown in this timetable are for ground level. Please see the apartment adjustment table below if you live in a high-rise building.
   </div>
 
-  <!-- Apartment Adjustments -->
-  <section class="apt-section">
-    <div class="section-header">
-      <h2 class="section-title">Prayer Time Adjustments for Apartments</h2>
-    </div>
-    <div class="apt-table-wrap">
-      <div class="apt-header">Prayer Time Differences for Apartments / High-Rise Buildings</div>
-      <div class="apt-sub-header">தொடர்மாடிகளுக்கான தொழுகை நேர வித்தியாச அட்டவணை</div>
-      <table class="apt-table" aria-label="Apartment height adjustments">
-        <thead>
-          <tr>
-            <th>Height (Stories)</th>
-            <th>Height (Metres)</th>
-            <th>Fajr</th>
-            <th>Sunrise</th>
-            <th>Maghrib</th>
-            <th>Isha</th>
-          </tr>
-        </thead>
-        <tbody id="apt-tbody">
-          <tr>
-            <td>06–35</td>
-            <td>24–140</td>
-            <td class="apt-diff-neg">−1 min</td>
-            <td class="apt-diff-neg">−1 min</td>
-            <td class="apt-diff-pos">+1 min</td>
-            <td class="apt-diff-pos">+1 min</td>
-          </tr>
-          <tr>
-            <td>35–87</td>
-            <td>140–350</td>
-            <td class="apt-diff-neg">−2 min</td>
-            <td class="apt-diff-neg">−2 min</td>
-            <td class="apt-diff-pos">+2 min</td>
-            <td class="apt-diff-pos">+2 min</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
+  <!-- ── Sahr Note ── -->
+  <div class="foot-note">
+    📝 <strong>Important Note:</strong>
+    The end of Sahr (Imsak) is <strong>2 minutes before Fajr time</strong>.
+    Times shown are for ground level — see the apartment adjustment table below if you live in a high-rise building.
+  </div>
 
-  <!-- Attribution -->
-  <div class="attribution">
-    <div class="attribution-logo">🕌</div>
-    <div class="attribution-text">
+  <!-- ── Apartment Adjustments ── -->
+  <div class="section-hd">
+    <h2 class="section-title">Apartment Height Adjustments</h2>
+  </div>
+  <div class="apt-card" style="margin-bottom:16px;">
+    <div class="apt-header">Prayer Time Differences for High-Rise Apartments</div>
+    <div class="apt-sub">தொடர்மாடிகளுக்கான தொழுகை நேர வித்தியாச அட்டவணை</div>
+    <table class="apt-table" aria-label="Apartment adjustments">
+      <thead>
+        <tr>
+          <th>Height (Stories)</th>
+          <th>Height (Metres)</th>
+          <th>Fajr</th>
+          <th>Sunrise</th>
+          <th>Maghrib</th>
+          <th>Isha</th>
+        </tr>
+      </thead>
+      <tbody id="apt-tbody">
+        <tr>
+          <td>06 – 35</td><td>24 – 140</td>
+          <td class="diff-neg">−1 min</td>
+          <td class="diff-neg">−1 min</td>
+          <td class="diff-pos">+1 min</td>
+          <td class="diff-pos">+1 min</td>
+        </tr>
+        <tr>
+          <td>35 – 87</td><td>140 – 350</td>
+          <td class="diff-neg">−2 min</td>
+          <td class="diff-neg">−2 min</td>
+          <td class="diff-pos">+2 min</td>
+          <td class="diff-pos">+2 min</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── ACJU Attribution ── -->
+  <div class="attribution-card" style="margin-bottom:28px;">
+    <div class="attr-logo">🕌</div>
+    <div class="attr-body">
       <h3>All Ceylon Jamiyyathul Ulama (ACJU)</h3>
       <p>
-        This prayer time schedule has been prepared based on the calculations used by the late
-        <strong>Al-'Alim M.I. Abdus Samad Makdoomi</strong> (Rahmatullahi Alayhi),
-        the former president of the All Ceylon Jamiyyathul Ulama and the founder of the Hassaniyya Arabic College.
+        This timetable is prepared based on calculations by the late <strong>Al-'Alim M.I. Abdus Samad Makdoomi</strong>
+        (Rahmatullahi Alayhi), former president of ACJU and founder of Hassaniyya Arabic College.
         Incorporated under Act of Parliament No. 26 of 1985.
       </p>
-      <div class="attribution-links">
+      <div class="attr-links">
         <a href="https://www.acju.lk" target="_blank" rel="noopener">🌐 www.acju.lk</a>
         <a href="tel:+94117490490">📞 +94 117 490 490</a>
         <a href="mailto:info@acju.lk">✉️ info@acju.lk</a>
@@ -212,16 +252,36 @@
 
 </main>
 
-<!-- ── Site Footer ─────────────────────────────────────────── -->
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════ -->
 <footer class="site-footer">
   <p>
-    Prayer times sourced from <a href="https://www.acju.lk" target="_blank" rel="noopener">All Ceylon Jamiyyathul Ulama (ACJU)</a> official timetables.
-    All times are for Sri Lanka Standard Time (UTC+5:30).
+    Prayer times sourced from
+    <a href="https://www.acju.lk" target="_blank" rel="noopener">All Ceylon Jamiyyathul Ulama (ACJU)</a>
+    official timetables. Sri Lanka Standard Time (UTC+5:30).
   </p>
-  <p style="margin-top:6px;opacity:0.6;font-size:11px;">
-    For the most accurate times, always refer to the official ACJU timetable PDFs available at acju.lk
+  <p style="margin-top:5px;font-size:11px;opacity:.6;">
+    For the most accurate times always refer to the official ACJU PDF timetables at acju.lk
   </p>
 </footer>
+
+<!-- ══════════════════════════════════════════
+     SHARE MODAL
+══════════════════════════════════════════ -->
+<div class="share-modal-overlay" id="share-modal-overlay" role="dialog" aria-modal="true" aria-label="Share Prayer Times">
+  <div class="share-modal">
+    <div class="share-modal-header">
+      <div class="share-modal-title">Share Prayer Times</div>
+      <button class="btn-modal-close" id="btn-modal-close" aria-label="Close">✕</button>
+    </div>
+    <pre class="share-preview" id="share-preview-text"></pre>
+    <div class="share-actions">
+      <button class="btn-copy" id="btn-copy">📋 Copy Text</button>
+      <button class="btn-share-native" id="btn-share-native">↗ Share</button>
+    </div>
+  </div>
+</div>
 
 <script src="assets/js/app.js"></script>
 </body>
