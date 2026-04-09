@@ -643,7 +643,7 @@ async function shareCanvasImage(canvas, filename) {
         const file = new File([blob], filename, { type: 'image/png' });
         try {
           if (navigator.canShare({ files: [file] })) {
-            await navigator.share({ files: [file], title: 'Prayer Times' });
+            await navigator.share({ files: [file], title: 'Prayer Times shared from - pray.gear.lk' });
             resolve(true); return;
           }
         } catch (e) { if (e.name !== 'AbortError') console.warn('share:', e); }
