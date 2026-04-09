@@ -925,7 +925,7 @@ async function init(){
       await shareCanvasImage(canvas, filename);
     } catch(e) { console.error(e); alert('Could not generate image.'); }
 
-    if (btn) { btn.textContent = '🖼️ Image'; btn.disabled = false; }
+    if (btn) { btn.textContent = '🖼️ ↗ Image'; btn.disabled = false; }
   });
 
   await renderToday();
