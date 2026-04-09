@@ -360,25 +360,16 @@ function buildTodayShare(data, row, displayYear) {
   // Uniform 3 dashes for every prayer — consistent regardless of name length
   const ln = (name, time) => `  ${name} ─── ${time}`;
   return [
-    `Sri Lankan Prayer Times`,
-    `📍 ${data.districts.join(', ')}`,
-    ``,
-    `${WDAY_F[d.getDay()]} / ${IDAY_F[d.getDay()]}`,
-    `${dNum} ${data.monthName} ${yr}`,
-    hijriDate(),
-    ``,
+    `Sri Lankan Prayer Times - ${data.districts.join(', ')}`,
+    `${WDAY_F[d.getDay()]} ${dNum} ${data.monthName} ${yr} / ${IDAY_F[d.getDay()]} ${hijriDate()}`,
     `  Fajr ───── ${row.fajr}`,
     `  Sunrise ─── ${row.sunrise}`,
     `  Zuhr ──── ${row.luhr}`,
     `  Asr ───── ${row.asr}`,
     `  Maghrib ─── ${row.magrib}`,
     `  Isha ───── ${row.isha}`,
-    ``,
-    `📌 Imsak (Sahr End): ${imsak}`,
-    ``,
-    `Source: ACJU Official`,
-    `www.acju.lk/prayer-times/`,
     `Shared from - pray.gear.lk`,
+    `Source: ACJU Official - www.acju.lk/prayer-times/`,
   ].join('\n');
 }
 
