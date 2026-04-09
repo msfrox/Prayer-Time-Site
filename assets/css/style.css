@@ -66,6 +66,8 @@ html {
   -webkit-tap-highlight-color: transparent;
   /* FIX: clip (not hidden) — allows position:sticky to work */
   overflow-x: clip;
+  /* Safari notch fix: html bg matches header so notch area never shows parchment */
+  background-color: #1A1A1A;
 }
 body {
   font-family: var(--sans);
@@ -83,6 +85,7 @@ body {
   /* Glassmorphism — charcoal glass */
   background: rgba(26,26,26,.68);
   backdrop-filter: blur(20px);
+  padding-top: env(safe-area-inset-top);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255,255,255,.08);
   position: sticky;
@@ -230,18 +233,56 @@ body {
 
 /* ── HERO ─────────────────────────────────────────────── */
 .hero-section {
-  background: linear-gradient(160deg, #1A1A1A 0%, #262626 60%, #2F3530 100%);
+  background: linear-gradient(160deg, #111211 0%, #1e201e 55%, #2a2e2a 100%);
   margin-top: -90px;
-  padding: 118px 22px 52px;
+  margin-bottom: -150px;
+  padding: 108px 22px 176px;
   position: relative;
   overflow: hidden;
   width: 100%;
 }
+
+/* Aurora orb 1 — gold, top-right, slow drift */
 .hero-section::before {
   content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse 50% 60% at 85% 0%, rgba(184,137,42,.12) 0%, transparent 70%);
+  position: absolute;
+  width: 520px; height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%,
+    rgba(184,137,42,.28) 0%,
+    rgba(184,137,42,.10) 35%,
+    transparent 70%);
+  top: -160px; right: -120px;
+  animation: auroraOrb1 14s ease-in-out infinite;
   pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* Aurora orb 2 — sage green, bottom-left, slower drift */
+.hero-section::after {
+  content: '';
+  position: absolute;
+  width: 420px; height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%,
+    rgba(88,101,90,.30) 0%,
+    rgba(88,101,90,.10) 38%,
+    transparent 70%);
+  bottom: -80px; left: -100px;
+  animation: auroraOrb2 18s ease-in-out infinite;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+@keyframes auroraOrb1 {
+  0%,100% { transform: translate(0, 0) scale(1);      opacity: .85; }
+  30%      { transform: translate(-55px, 45px) scale(1.12); opacity: 1;   }
+  65%      { transform: translate(35px, -30px) scale(.93);  opacity: .6;  }
+}
+@keyframes auroraOrb2 {
+  0%,100% { transform: translate(0, 0) scale(1);      opacity: .75; }
+  40%      { transform: translate(60px, -45px) scale(1.14); opacity: 1;   }
+  72%      { transform: translate(-35px, 25px) scale(.88);  opacity: .5;  }
 }
 
 .hero-inner {
@@ -485,6 +526,10 @@ body {
   border-left: 3px solid var(--gold-400);
 }
 .prayer-row.is-past { opacity: .38; }
+/* Sunrise is informational — shown slightly muted (unless it's the active prayer) */
+.prayer-row.is-sunrise:not(.is-current):not(.is-next) .pr-name,
+.prayer-row.is-sunrise:not(.is-current):not(.is-next) .pr-time,
+.prayer-row.is-sunrise:not(.is-current):not(.is-next) .pr-icon { opacity: .52; }
 .prayer-row.is-current {
   background: linear-gradient(90deg, rgba(88,101,90,.08) 0%, transparent 80%);
   border-left: 3px solid var(--olive-700);
@@ -732,7 +777,7 @@ body {
   border-bottom: 1px solid var(--ink-100);
 }
 .apt-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.apt-table { width: 100%; border-collapse: collapse; min-width: 400px; }
+.apt-table { width: 100%; border-collapse: collapse; }
 .apt-table thead th {
   padding: 10px 15px;
   font-size: 10px;
@@ -747,6 +792,15 @@ body {
 .apt-table tbody tr { border-bottom: 1px solid var(--ink-100); }
 .apt-table tbody tr:last-child { border-bottom: none; }
 .apt-table tbody td { padding: 11px 15px; font-size: 13px; text-align: center; color: var(--ink-600); }
+.apt-note {
+  background: var(--bg-subtle);
+  border-top: 1px solid var(--ink-100);
+  padding: 7px 18px;
+  font-size: 10.5px;
+  color: var(--ink-400);
+  text-align: center;
+  letter-spacing: .2px;
+}
 .diff-neg { color: var(--red); font-weight: 700; }
 .diff-pos { color: var(--olive-700); font-weight: 700; }
 
@@ -888,7 +942,7 @@ body {
   text-transform: uppercase;
   letter-spacing: .5px;
 }
-.share-day-picker {
+.share-date-input {
   flex: 1;
   background: transparent;
   border: none;
@@ -899,6 +953,11 @@ body {
   cursor: pointer;
   outline: none;
   min-width: 0;
+}
+/* Remove the default date-input chrome on WebKit */
+.share-date-input::-webkit-calendar-picker-indicator {
+  opacity: .4;
+  cursor: pointer;
 }
 
 .share-preview {
@@ -912,6 +971,9 @@ body {
   line-height: 1.75;
   white-space: pre;
   overflow-x: auto;
+  /* Limit height so Copy/Share buttons stay visible regardless of content length */
+  max-height: 42vh;
+  overflow-y: auto;
 }
 .share-actions { display: flex; gap: 8px; }
 .btn-copy, .btn-share-native {
@@ -939,6 +1001,24 @@ body {
   box-shadow: var(--s2);
 }
 .btn-share-native:hover { filter: brightness(1.15); }
+
+.btn-share-img {
+  flex: 1;
+  padding: 11px;
+  border-radius: var(--r2);
+  border: none;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--ease);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(135deg, var(--olive-700), var(--olive-600));
+  color: #F4F1EC;
+  box-shadow: var(--s2);
+}
+.btn-share-img:hover   { filter: brightness(1.15); }
+.btn-share-img:disabled { opacity: .5; cursor: wait; }
 
 /* ── STATES ─────────────────────────────────────────────── */
 .spinner {
@@ -1000,7 +1080,12 @@ body {
   }
 
   /* Hero */
-  .hero-section { padding: 110px 14px 50px; }
+  .hero-section {
+    padding: 100px 14px 160px;
+  }
+  /* Scale orbs down a bit on mobile so they fill correctly */
+  .hero-section::before { width: 340px; height: 340px; top: -100px; right: -80px; }
+  .hero-section::after  { width: 280px; height: 280px; bottom: -50px; left: -60px; }
 
   /* Mobile hero: two-column grid for next prayer + timer */
   .hero-body {
@@ -1048,6 +1133,10 @@ body {
 
   /* Attribution */
   .attribution-card { flex-direction: column; padding: 16px; }
+
+  /* Apartment table — compact on mobile */
+  .apt-table thead th { padding: 8px 10px; font-size: 9px; letter-spacing: .4px; }
+  .apt-table tbody td { padding: 9px 10px; font-size: 12px; }
 
   /* Share modal */
   .share-modal { padding: 16px; }

@@ -9,18 +9,20 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-TTD5MZD9');</script>
 <!-- End Google Tag Manager -->
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Sri Lanka Prayer Times – ACJU Official Timetable</title>
   <meta name="description" content="Official Islamic prayer timetables for all districts of Sri Lanka by All Ceylon Jamiyyathul Ulama (ACJU). Accurate Fajr, Zuhr, Asr, Maghrib and Isha times." />
-  <meta name="theme-color" content="#141F0A" />
+  <meta name="theme-color" content="#1A1A1A" />
   <meta property="og:title" content="Sri Lanka Prayer Times – ACJU Official" />
   <meta property="og:description" content="Accurate district-wise Islamic prayer timetables for all of Sri Lanka." />
   <meta property="og:type" content="website" />
   <link rel="stylesheet" href="assets/css/style.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕌</text></svg>" />
   <link rel="apple-touch-icon" href="./assets/images/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1A1A1A"/>
 </head>
 <body>
 
@@ -191,17 +193,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <tbody id="apt-tbody">
           <tr>
             <td>06 – 35</td><td>24 – 140</td>
-            <td class="diff-neg">−1 min</td><td class="diff-neg">−1 min</td>
-            <td class="diff-pos">+1 min</td><td class="diff-pos">+1 min</td>
+            <td class="diff-neg">−1</td><td class="diff-neg">−1</td>
+            <td class="diff-pos">+1</td><td class="diff-pos">+1</td>
           </tr>
           <tr>
             <td>35 – 87</td><td>140 – 350</td>
-            <td class="diff-neg">−2 min</td><td class="diff-neg">−2 min</td>
-            <td class="diff-pos">+2 min</td><td class="diff-pos">+2 min</td>
+            <td class="diff-neg">−2</td><td class="diff-neg">−2</td>
+            <td class="diff-pos">+2</td><td class="diff-pos">+2</td>
           </tr>
         </tbody>
       </table>
     </div>
+    <div class="apt-note">All values in minutes · Early for Fajr/Sunrise · Later for Maghrib/Isha</div>
   </div>
 
   <!-- Attribution -->
@@ -215,7 +218,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         Incorporated under Act of Parliament No. 26 of 1985.
       </p>
       <div class="attr-links">
-        <a href="https://www.acju.lk" target="_blank" rel="noopener">🌐 acju.lk</a>
+        <a href="https://www.acju.lk/" target="_blank" rel="noopener">🌐 acju.lk</a>
         <a href="tel:+94117490490">📞 +94 117 490 490</a>
         <a href="mailto:info@acju.lk">✉️ info@acju.lk</a>
         <a href="https://twitter.com/ACJUNews" target="_blank" rel="noopener">𝕏 @ACJUNews</a>
@@ -229,6 +232,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <footer class="site-footer">
   <p>Prayer times from <a href="https://www.acju.lk/prayer-times/" target="_blank" rel="noopener">All Ceylon Jamiyyathul Ulama (ACJU)</a> official timetables · Sri Lanka Standard Time (UTC+5:30)</p>
   <p style="margin-top:4px;font-size:10px;opacity:.6;">For the most accurate times always refer to the official ACJU PDF timetables at acju.lk</p>
+  <p style="margin-top:8px;font-size:11px;opacity:1;">Found an issue? email us - <a href="mailto:pray@gear.lk" style="color:var(--gold-400);text-decoration:none;">pray@gear.lk</a></p>
+  <p style="margin-top:8px;font-size:11px;opacity:1;">Thank you for visiting prayer times!</p>
 </footer>
 
 <!-- ══ SHARE MODAL ════════════════════════════════════════ -->
@@ -240,12 +245,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
     <div class="share-date-picker" id="share-date-picker" style="display:none;">
       <span class="share-date-label">Date:</span>
-      <select id="share-day-picker" class="share-day-picker" aria-label="Pick day to share"></select>
+      <input type="date" id="share-date-input" class="share-date-input" aria-label="Pick date to share" />
     </div>
     <pre class="share-preview" id="share-preview-text"></pre>
     <div class="share-actions">
       <button class="btn-copy"         id="btn-copy">📋 Copy</button>
       <button class="btn-share-native" id="btn-share-native">↗ Share</button>
+      <button class="btn-share-img"    id="btn-share-img">🖼️ Image</button>
     </div>
   </div>
 </div>

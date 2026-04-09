@@ -52,6 +52,15 @@ const S = {
 
 // ── Utils ─────────────────────────────────────────────────
 const pad = n => String(n).padStart(2,'0');
+
+function findRowByDate(data, dateObj) {
+  if (!data || !data.days) return null;
+  const d = dateObj.getDate();
+  const m = MON_SHORT[dateObj.getMonth() + 1]; 
+  const searchStr = `${d}-${m}`;
+  return data.days.find(row => row.date === searchStr) || null;
+}
+
 const col = (s, w) => String(s).padEnd(w);
 
 function parseTime(str) {
@@ -85,7 +94,9 @@ function hijriDate() {
     const now  = new Date();
     const day  = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{day:'numeric'}).format(now);
     const mon  = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{month:'numeric'}).format(now);
-    const year = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{year:'numeric'}).format(now);
+    // Some browsers append " AH" to the year — strip it before we add our own
+    const year = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{year:'numeric'}).format(now)
+                   .replace(/\s*AH\s*$/i,'').trim();
     return `${day} ${HIJ_MON[+mon-1] || ''} ${year} AH`;
   } catch { return ''; }
 }
@@ -95,7 +106,8 @@ function hijriShort() {
     const now  = new Date();
     const day  = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{day:'numeric'}).format(now);
     const mon  = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{month:'numeric'}).format(now);
-    const year = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{year:'numeric'}).format(now);
+    const year = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{year:'numeric'}).format(now)
+                   .replace(/\s*AH\s*$/i,'').trim();
     return `${day} ${HIJ_MON[+mon-1]?.slice(0,7) || ''} ${year} AH`;
   } catch { return ''; }
 }
@@ -131,56 +143,80 @@ function findTodayRow(data){
   return data?.days?.find(d=>d.date===s)||null;
 }
 
-function prayerStatus(row){
-  if(!row) return {current:null,next:'fajr'};
-  const now=new Date();
-  const times=PRAYERS.map(k=>({key:k,t:parseTime(row[k])}));
-  let cur=null,nxt=null;
-  for(let i=0;i<times.length;i++){
-    if(times[i].t&&now>=times[i].t){cur=times[i].key;nxt=times[i+1]?.key||null;}
+function prayerStatus(row) {
+  if (!row) return { current: null, next: 'fajr', isNextDay: true };
+  const now = new Date();
+  const times = PRAYERS.map(k => ({ key: k, t: parseTime(row[k]) }));
+  
+  let cur = null, nxt = null;
+  for (let i = 0; i < times.length; i++) {
+    if (times[i].t && now >= times[i].t) {
+      cur = times[i].key;
+      nxt = times[i + 1]?.key || null;
+    }
   }
-  if(!cur) nxt=times[0].key;
-  return {current:cur,next:nxt};
+
+  // If no prayers have happened yet today (before Fajr)
+  if (!cur) return { current: null, next: 'fajr', isNextDay: false };
+  
+  // After Isha: Next prayer is Fajr tomorrow
+  if (cur === 'isha' && !nxt) {
+    return { current: 'isha', next: 'fajr', isNextDay: true };
+  }
+
+  return { current: cur, next: nxt, isNextDay: false };
 }
 
 // ── Header + Hero Date ─────────────────────────────────────
 function renderHeader(){
-  const now=new Date();
-  const dateStr=`${WDAY_S[now.getDay()]}, ${now.getDate()} ${MON_SHORT[now.getMonth()+1]} ${now.getFullYear()}`;
-  const hijriStr=hijriShort();
+  const now  = new Date();
+  const hrs  = now.getHours();
+  const mins = now.getMinutes();
+  const secs = now.getSeconds();
+  const h12  = hrs % 12 || 12;
+  const ampm = hrs < 12 ? 'AM' : 'PM';
+  const timeStr = `${pad(h12)}:${pad(mins)}:${pad(secs)} ${ampm}`;
+  const dateStr = `${WDAY_S[now.getDay()]}, ${now.getDate()} ${MON_SHORT[now.getMonth()+1]} ${now.getFullYear()}`;
+  const hijriStr = hijriShort();
+  const combined = `${timeStr} · ${dateStr}`;
 
   // Header date (hidden on mobile via CSS, visible on desktop)
-  const g=document.getElementById('header-gregorian');
-  const h=document.getElementById('header-hijri');
-  if(g) g.textContent=dateStr;
-  if(h) h.textContent=hijriStr;
+  const gEl = document.getElementById('header-gregorian');
+  const hEl = document.getElementById('header-hijri');
+  if(gEl) gEl.textContent = combined;
+  if(hEl) hEl.textContent = hijriStr;
 
   // Hero date block (always visible)
-  const hg=document.getElementById('hero-date-greg');
-  const hh=document.getElementById('hero-date-hijri');
-  if(hg) hg.textContent=dateStr;
-  if(hh) hh.textContent=hijriStr;
+  const hgEl = document.getElementById('hero-date-greg');
+  const hhEl = document.getElementById('hero-date-hijri');
+  if(hgEl) hgEl.textContent = combined;
+  if(hhEl) hhEl.textContent = hijriStr;
 }
 
 // ── Hero ──────────────────────────────────────────────────
 // The hero ALWAYS uses S.todayData (real today), never the table month
-function renderHero(data,row){
-  const {current,next}=prayerStatus(row);
-  const locEl  =document.getElementById('hero-location-name');
-  const badgeEl=document.getElementById('hero-location-badge');
-  if(locEl&&data)  locEl.textContent=data.districts.join(' • ');
-  if(badgeEl&&data) badgeEl.textContent=data.zoneName;
+// nextRow: tomorrow's row (passed when isNextDay=true so we show correct Fajr time)
+function renderHero(data, row, nextRow, isNextDay) {
+  const {current, next} = prayerStatus(row);
+  const locEl   = document.getElementById('hero-location-name');
+  const badgeEl = document.getElementById('hero-location-badge');
+  if(locEl && data)   locEl.textContent = data.districts.join(' • ');
+  if(badgeEl && data) badgeEl.textContent = data.zoneName;
 
-  const lblEl=document.getElementById('hero-next-label');
-  const nmEl =document.getElementById('hero-next-name');
-  const atEl =document.getElementById('hero-next-at');
-  if(next&&row){
-    if(lblEl) lblEl.textContent=current?'Next Prayer':'First Prayer';
-    if(nmEl)  nmEl.textContent=P_LABEL[next];
-    if(atEl)  atEl.textContent=`at ${row[next]}`;
+  const lblEl = document.getElementById('hero-next-label');
+  const nmEl  = document.getElementById('hero-next-name');
+  const atEl  = document.getElementById('hero-next-at');
+
+  // When after Isha, use tomorrow's row for the Fajr time
+  const timeRow = (isNextDay && nextRow) ? nextRow : row;
+
+  if(next && timeRow) {
+    if(lblEl) lblEl.textContent = isNextDay ? "Tomorrow's Fajr" : (current ? 'Next Prayer' : 'First Prayer');
+    if(nmEl)  nmEl.textContent = P_LABEL[next];
+    if(atEl)  atEl.textContent = `at ${timeRow[next]}`;
   } else {
-    if(nmEl) nmEl.textContent='—';
-    if(atEl) atEl.textContent='No more prayers today';
+    if(nmEl) nmEl.textContent = '—';
+    if(atEl) atEl.textContent = 'No more prayers today';
   }
 }
 
@@ -212,20 +248,25 @@ function renderFeatured(row,current,next){
 }
 
 // ── Prayer list ────────────────────────────────────────────
-function renderList(row,current,next){
-  const panel=document.getElementById('prayer-list');
+// nextRow: tomorrow's row — used to show correct Fajr time when isNextDay=true
+function renderList(row, current, next, isNextDay, nextRow) {
+  const panel = document.getElementById('prayer-list');
   if(!panel) return;
-  if(!row){panel.innerHTML='<div class="loading-block"><span style="color:#aaa">No data for today</span></div>';return;}
-  panel.innerHTML='';
-  PRAYERS.forEach(key=>{
-    const isNow=key===current, isNext=key===next;
-    const isPast=!isNow&&!isNext&&current&&PRAYERS.indexOf(key)<PRAYERS.indexOf(current);
-    const {hm,ap}=splitTime(row[key]||'');
-    const badge=isNow?'<span class="pr-badge pr-badge-now">Now</span>'
-               :isNext?'<span class="pr-badge pr-badge-next">Next</span>':'';
-    const div=document.createElement('div');
-    div.className=`prayer-row${isNow?' is-current':''}${isNext?' is-next':''}${isPast?' is-past':''}`;
-    div.innerHTML=`<span class="pr-icon">${P_ICON[key]}</span>
+  if(!row) { panel.innerHTML = '<div class="loading-block"><span style="color:#aaa">No data for today</span></div>'; return; }
+  panel.innerHTML = '';
+  PRAYERS.forEach(key => {
+    const isNow  = key === current;
+    const isNext = key === next;
+    const isPast = !isNow && !isNext && current && PRAYERS.indexOf(key) < PRAYERS.indexOf(current);
+    // When after Isha, show tomorrow's Fajr time instead of today's
+    const displayRow = (isNext && isNextDay && nextRow) ? nextRow : row;
+    const {hm, ap} = splitTime(displayRow[key] || '');
+    const badgeText = isNow ? 'Now' : (isNext ? (isNextDay ? 'Tomorrow' : 'Next') : '');
+    const badge = isNow ? '<span class="pr-badge pr-badge-now">Now</span>'
+                : isNext ? `<span class="pr-badge pr-badge-next">${badgeText}</span>` : '';
+    const div = document.createElement('div');
+    div.className = `prayer-row${isNow?' is-current':''}${isNext?' is-next':''}${isPast?' is-past':''}${key==='sunrise'?' is-sunrise':''}`;
+    div.innerHTML = `<span class="pr-icon">${P_ICON[key]}</span>
       <span class="pr-name">${P_LABEL[key]}</span>${badge}
       <span class="pr-time">${hm}<span class="pr-time-ampm"> ${ap}</span></span>`;
     panel.appendChild(div);
@@ -245,13 +286,22 @@ function renderImsakIftar(row){
 }
 
 // ── Countdown ─────────────────────────────────────────────
-function renderCountdown(row,next){
-  const el=document.getElementById('hero-timer');
-  if(!el||!next||!row){if(el)el.textContent='--:--:--';return;}
-  const t=parseTime(row[next]); if(!t) return;
-  let diff=t-new Date(); if(diff<0) diff+=86400000;
-  const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
-  el.textContent=`${pad(h)}:${pad(m)}:${pad(s)}`;
+function renderCountdown(row, next, isNextDay) {
+  const el = document.getElementById('hero-timer');
+  const t = parseTime(row?.[next]); 
+  if (!t || !el) return;
+
+  let diff = t - new Date();
+  
+  // CRITICAL: If the target is tomorrow, add 24 hours (86,400,000ms)
+  if (isNextDay) {
+    diff += 86400000;
+  }
+
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  el.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
 }
 
 // ── Monthly table ──────────────────────────────────────────
@@ -260,7 +310,7 @@ function renderMonthly(data){
   const title=document.getElementById('monthly-title');
   const zone =document.getElementById('monthly-zone');
   if(!tbody||!data) return;
-  if(title) title.textContent=`${data.monthName} ${data.year}`;
+  if(title) title.textContent=`${data.monthName} ${S.year}`;
   if(zone)  zone.textContent=`${data.zoneName} — ${data.districts.join(', ')}`;
   const now=new Date(), todayNum=now.getDate(), todayMon=now.getMonth()+1;
   tbody.innerHTML='';
@@ -282,7 +332,7 @@ function renderMonthly(data){
 function renderApt(data){
   const tbody=document.getElementById('apt-tbody');
   if(!tbody||!data?.apartmentDiff) return;
-  const apt=data.apartmentDiff,fmt=n=>n<0?`−${Math.abs(n)} min`:`+${n} min`;
+  const apt=data.apartmentDiff,fmt=n=>n<0?`−${Math.abs(n)}`:`+${n}`;
   tbody.innerHTML=`<tr>
     <td>${apt.lowRise.stories}</td><td>${apt.lowRise.heightM}</td>
     <td class="diff-neg">${fmt(apt.lowRise.fajr)}</td>
@@ -299,56 +349,317 @@ function renderApt(data){
 }
 
 // ── Share builders ─────────────────────────────────────────
-function buildTodayShare(data, row) {
+// displayYear: the year from the date picker (not data.year which is a JSON metadata field)
+// Since timetable data is the same every year, displayYear is always the user-selected year.
+function buildTodayShare(data, row, displayYear) {
   if (!data || !row) return '';
-  const dNum = +row.date.split('-')[0];
-  const d = new Date(data.year, data.monthNum-1, dNum);
+  const yr    = displayYear || S.year;
+  const dNum  = +row.date.split('-')[0];
+  const d     = new Date(yr, data.monthNum - 1, dNum);
   const imsak = minusMins(row.fajr, 2);
+  // Uniform 3 dashes for every prayer — consistent regardless of name length
+  const ln = (name, time) => `  ${name} ─── ${time}`;
   return [
-    `🕌 SALAH TIMES 🇱🇰`,
+    `Sri Lankan Prayer Times`,
     `📍 ${data.districts.join(', ')}`,
     ``,
     `${WDAY_F[d.getDay()]} / ${IDAY_F[d.getDay()]}`,
-    `${row.date.replace('-',' ')} ${data.monthName} ${data.year}`,
+    `${dNum} ${data.monthName} ${yr}`,
     hijriDate(),
     ``,
-    `┌─────────────────────────────┐`,
-    `  Fajr        ${row.fajr}`,
-    `  Sunrise     ${row.sunrise}`,
-    `  Zuhr        ${row.luhr}`,
-    `  Asr         ${row.asr}`,
-    `  Maghrib     ${row.magrib}`,
-    `  Isha        ${row.isha}`,
-    `└─────────────────────────────┘`,
+    `  Fajr ───── ${row.fajr}`,
+    `  Sunrise ─── ${row.sunrise}`,
+    `  Zuhr ──── ${row.luhr}`,
+    `  Asr ───── ${row.asr}`,
+    `  Maghrib ─── ${row.magrib}`,
+    `  Isha ───── ${row.isha}`,
     ``,
     `📌 Imsak (Sahr End): ${imsak}`,
     ``,
     `Source: ACJU Official`,
-    `www.acju.lk`,
+    `www.acju.lk/prayer-times/`,
+    `Shared from - pray.gear.lk`,
   ].join('\n');
 }
 
-// ── FIX: Better formatted month share ─────────────────────
-function buildMonthShare(data) {
+function buildMonthShare(data, displayYear) {
   if (!data) return '';
-  const SEP = `─────────────────────────────────────────────`;
+  const yr  = displayYear || S.year;
+  // Compact format: a/p suffix keeps times short so columns fit in WhatsApp
+  const t = s => s ? s.replace(/ AM$/i,'a').replace(/ PM$/i,'p') : '—';
+  const SEP = `──────────────────────────────`;  // shorter separator
   const lines = [
-    `🕌 SALAH TIMES — ${data.monthName} ${data.year} 🇱🇰`,
-    `📍 ${data.districts.join(', ')}`,
-    `Source: ACJU | www.acju.lk`,
+    `SRI LANKA PRAYER TIMES — ${data.monthName} ${yr}`,
+    `${data.districts.join(', ')}`,
+    `Source: ACJU | www.acju.lk/prayer-times/`,
     ``,
     SEP,
-    `${col('Date',10)} ${col('Day',5)} ${col('Fajr',9)} ${col('Zuhr',9)} ${col('Asr',9)} ${col('Maghrib',9)} Isha`,
+    `${'Date'.padEnd(8)} ${'Dy'.padEnd(4)} ${'Fajr'.padEnd(8)} ${'Zuhr'.padEnd(9)} ${'Asr'.padEnd(8)} ${'Maghrib'.padEnd(9)} Isha`,
     SEP,
   ];
   data.days.forEach(d => {
-    const dow = new Date(data.year, data.monthNum-1, +d.date.split('-')[0]).getDay();
+    const dow = new Date(yr, data.monthNum - 1, +d.date.split('-')[0]).getDay();
     lines.push(
-      `${col(d.date,10)} ${col(WDAY_S[dow],5)} ${col(d.fajr,9)} ${col(d.luhr,9)} ${col(d.asr,9)} ${col(d.magrib,9)} ${d.isha}`
+      `${d.date.padEnd(8)} ${WDAY_S[dow].padEnd(4)} ${t(d.fajr).padEnd(8)} ${t(d.luhr).padEnd(9)} ${t(d.asr).padEnd(8)} ${t(d.magrib).padEnd(9)} ${t(d.isha)}`
     );
   });
   lines.push(SEP);
+  lines.push(``);
+  lines.push(`To generate your own prayer times, visit pray.gear.lk`);
   return lines.join('\n');
+}
+
+// ── Canvas Image Generation ────────────────────────────────
+
+function _cvSetup(w, h) {
+  const canvas = document.createElement('canvas');
+  const dpr    = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width  = w * dpr;
+  canvas.height = h * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  return { canvas, ctx };
+}
+
+function _txt(ctx, text, x, y, { size=13, weight='400', color='#1A1A1A', align='left' }={}) {
+  ctx.save();
+  ctx.fillStyle  = color;
+  ctx.font       = `${weight} ${size}px "Plus Jakarta Sans",system-ui,-apple-system,sans-serif`;
+  ctx.textAlign  = align;
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function _hrule(ctx, x1, y, x2, color='rgba(0,0,0,.1)', lw=1) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth   = lw;
+  ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke();
+  ctx.restore();
+}
+
+// Light parchment background (used by both day and month images)
+function _bgLight(ctx, w, h) {
+  const g = ctx.createLinearGradient(0, 0, w * .6, h);
+  g.addColorStop(0, '#F4F1EC');
+  g.addColorStop(1, '#EDE9E0');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+  // Subtle warm gold glow top-right
+  const g2 = ctx.createRadialGradient(w, 0, 0, w, 0, w * .65);
+  g2.addColorStop(0, 'rgba(184,137,42,.07)');
+  g2.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g2;
+  ctx.fillRect(0, 0, w, h);
+}
+
+function _goldBar(ctx, w, y) {
+  const g = ctx.createLinearGradient(0, 0, w, 0);
+  g.addColorStop(0, '#B8892A');
+  g.addColorStop(.5, '#CFA344');
+  g.addColorStop(1, '#B8892A');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, y, w, 3);
+}
+
+// Hijri date for an arbitrary Date object (not just today)
+function hijriForDate(date) {
+  try {
+    const day  = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{day:'numeric'}).format(date);
+    const mon  = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{month:'numeric'}).format(date);
+    const year = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{year:'numeric'}).format(date)
+                   .replace(/\s*AH\s*$/i,'').trim();
+    return `${day} ${HIJ_MON[+mon-1] || ''} ${year} AH`;
+  } catch { return ''; }
+}
+
+function generateDayCanvas(data, row, displayYear) {
+  const W = 420, H = 430;
+  const { canvas, ctx } = _cvSetup(W, H);
+  const P = 26;
+  _bgLight(ctx, W, H);
+  _goldBar(ctx, W, 0);
+  _goldBar(ctx, W, H - 3);
+
+  let y = 30;
+  // Header row
+  _txt(ctx, 'SRI LANKA PRAYER TIMES', P, y, { size: 9.5, weight: '700', color: '#9A9890' });
+  _txt(ctx, 'ACJU Official', W - P, y, { size: 9.5, color: '#B8892A', align: 'right' });
+  y += 20;
+  _txt(ctx, data.districts.join(', '), P, y, { size: 16, weight: '700', color: '#B8892A' });
+  y += 8;
+  _hrule(ctx, P, y, W - P, 'rgba(184,137,42,.4)');
+  y += 18;
+
+  const dNum = +row.date.split('-')[0];
+  const d    = new Date(displayYear, data.monthNum - 1, dNum);
+  _txt(ctx, `${WDAY_F[d.getDay()]}  /  ${IDAY_F[d.getDay()]}`, P, y, { size: 10.5, color: '#9A9890' });
+  y += 32;
+  _txt(ctx, `${dNum} ${data.monthName} ${displayYear}`, P, y, { size: 26, weight: '800', color: '#1A1A1A' });
+  y += 23;
+  _txt(ctx, hijriForDate(d), P, y, { size: 10.5, color: '#9A9890' });
+  y += 18;
+  _hrule(ctx, P, y, W - P, 'rgba(0,0,0,.08)');
+  y += 25;
+
+  // Prayer rows
+  const prayers = [
+    { name:'Fajr',    time:row.fajr,   muted:false },
+    { name:'Sunrise', time:row.sunrise, muted:true  },
+    { name:'Zuhr',    time:row.luhr,   muted:false },
+    { name:'Asr',     time:row.asr,    muted:false },
+    { name:'Maghrib', time:row.magrib, muted:false },
+    { name:'Isha',    time:row.isha,   muted:false },
+  ];
+  prayers.forEach(({ name, time, muted }, i) => {
+    if (i % 2 === 0) {
+      ctx.fillStyle = 'rgba(0,0,0,.03)';
+      ctx.fillRect(0, y - 22, W, 32);
+    }
+    const nc = muted ? '#8A9E8E' : '#4A4840';
+    const tc = muted ? '#8A9E8E' : '#1A1A1A';
+    const nw = muted ? '400' : '500';
+    const tw = muted ? '400' : '700';
+    _txt(ctx, name, P, y, { size: 13.5, weight: nw, color: nc });
+    _txt(ctx, time || '—', W - P, y, { size: 14, weight: tw, color: tc, align: 'right' });
+    y += 32;
+  });
+
+  y -= 20;
+  _hrule(ctx, P, y, W - P, 'rgba(0,0,0,.08)');
+  y += 20;
+  _txt(ctx, 'Imsak · Sahr End', P, y, { size: 11, weight: '600', color: '#7A7870' });
+  _txt(ctx, minusMins(row.fajr, 2), W - P, y, { size: 12.5, weight: '700', color: '#B8892A', align: 'right' });
+  y += 37;
+  _hrule(ctx, P, y, W - P, 'rgba(184,137,42,.25)');
+  y += 13;
+  _txt(ctx, 'www.acju.lk/prayer-times/', P, y, { size: 9, color: '#B0AEA8' });
+  _txt(ctx, 'For full timetable, visit - pray.gear.lk', W - P, y, { size: 9, color: '#312308', align: 'right' });
+
+  return canvas;
+}
+
+function generateMonthCanvas(data, displayYear) {
+  const W     = 620;
+  const ROW_H = 22;
+  const HEAD  = 152;
+  const FOOT  = 50;
+  const H     = HEAD + data.days.length * ROW_H + FOOT;
+  const { canvas, ctx } = _cvSetup(W, H);
+  const P = 20;
+  _bgLight(ctx, W, H);
+  _goldBar(ctx, W, 0);
+  _goldBar(ctx, W, H - 3);
+
+  // Header section
+  let y = 32;
+  _txt(ctx, `SRI LANKA PRAYER TIMES — ${data.monthName.toUpperCase()} ${displayYear}`, P, y, { size: 13.5, weight: '900', color: '#4A4840' });
+  _txt(ctx, 'ACJU Official', W - P, y, { size: 9.5, color: '#B8892A', align: 'right' });
+  y += 19;
+  _txt(ctx, data.districts.join(', '), P, y, { size: 11, color: '#B8892A' });
+  y += 15;
+  _txt(ctx, `${data.zoneName}  ·  ${hijriForDate(new Date(displayYear, data.monthNum - 1, 1))}`, P, y, { size: 9.5, color: '#9A9890' });
+  y += 11;
+  _hrule(ctx, P, y, W - P, 'rgba(184,137,42,.35)');
+  y += 16;
+
+  // Column definitions — 8 cols (Date, Day, Fajr, Sunrise, Zuhr, Asr, Maghrib, Isha)
+  // For right-aligned cols, x is the right edge of the text
+  const COLS = [
+    { l:'Date',    x:P,   r:false            },
+    { l:'Day',     x:80,  r:false            },
+    { l:'Fajr',   x:170,  r:true             },
+    { l:'Sunrise', x:256,  r:true, muted:true },  // muted sage
+    { l:'Zuhr',   x:342,  r:true             },
+    { l:'Asr',    x:428,  r:true             },
+    { l:'Maghrib',x:514,  r:true             },
+    { l:'Isha',   x:600,  r:true             },  // W - P = 600
+  ];
+
+  COLS.forEach(c => _txt(ctx, c.l, c.x, y, {
+    size: 12, weight: '700',
+    color: c.muted ? '#8A9E8E' : '#6B7D70',
+    align: c.r ? 'right' : 'left'
+  }));
+  y += 8;
+  _hrule(ctx, P, y, W - P, 'rgba(0,0,0,.1)');
+  y += 17;
+
+  const todayD = new Date().getDate(), todayM = new Date().getMonth() + 1;
+  // Compact time: "4:32a" / "6:22p"
+  const tc = s => s ? s.replace(/ AM$/i,'AM').replace(/ PM$/i,'PM') : '—';
+
+  data.days.forEach((day, i) => {
+    const dNum = +day.date.split('-')[0];
+    const dow  = new Date(displayYear, data.monthNum - 1, dNum).getDay();
+    const isTd = dNum === todayD && data.monthNum === todayM;
+    const isFr = dow === 5;
+
+    if (isTd) {
+      ctx.fillStyle = 'rgba(184,137,42,.12)';
+      ctx.fillRect(0, y - ROW_H + 5, W, ROW_H);
+    } else if (i % 2 === 0) {
+      ctx.fillStyle = 'rgba(0,0,0,.025)';
+      ctx.fillRect(0, y - ROW_H + 5, W, ROW_H);
+    }
+
+    const dateC = isTd ? '#B8892A' : isFr ? '#58655a' : '#4A4840';
+    const timeC = isTd ? '#1A1A1A' : '#4A4840';
+    const fw    = isTd ? '700' : '400';
+
+    _txt(ctx, day.date,     P,  y-3, { size:10.5, weight:fw, color:dateC });
+    _txt(ctx, WDAY_S[dow], 74, y-3, { size:9.5,  color:'#9A9890' });
+
+    // Time values: Fajr, Sunrise (muted), Zuhr, Asr, Maghrib, Isha
+    const times = [day.fajr, day.sunrise, day.luhr, day.asr, day.magrib, day.isha];
+    times.forEach((tv, ti) => {
+      const c  = COLS[ti + 2];
+      const isSr = ti === 1; // Sunrise is index 1
+      _txt(ctx, tc(tv), c.x, y, {
+        size:   10.5,
+        weight: isSr ? '400' : fw,
+        color:  isSr ? '#8A9E8E' : timeC,
+        align:  'right'
+      });
+    });
+    y += ROW_H;
+  });
+
+  y += 4;
+  _hrule(ctx, P, y, W - P, 'rgba(0,0,0,.08)');
+  y += 14;
+  _txt(ctx, 'www.acju.lk/prayer-times/', P, y, { size: 9, color: '#B0AEA8' });
+  _txt(ctx, 'For full timetable, visit - pray.gear.lk', W - P, y, { size: 9, color: '#312308', align: 'right' });
+
+  return canvas;
+}
+
+async function shareCanvasImage(canvas, filename) {
+  return new Promise(resolve => {
+    canvas.toBlob(async blob => {
+      if (!blob) { resolve(false); return; }
+      // Try native share with file (iOS Safari 15+, HTTPS required in production)
+      if (navigator.canShare) {
+        const file = new File([blob], filename, { type: 'image/png' });
+        try {
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], title: 'Prayer Times' });
+            resolve(true); return;
+          }
+        } catch (e) { if (e.name !== 'AbortError') console.warn('share:', e); }
+      }
+      // Fallback: trigger download
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
+      a.href     = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      resolve(true);
+    }, 'image/png');
+  });
 }
 
 // ── Share modal ────────────────────────────────────────────
@@ -356,53 +667,64 @@ function openShareToday(data) {
   if (!data) { alert('No data loaded yet.'); return; }
   const ov        = document.getElementById('share-modal-overlay');
   const pr        = document.getElementById('share-preview-text');
-  const picker    = document.getElementById('share-day-picker');
+  const dateInput = document.getElementById('share-date-input');
   const pickerRow = document.getElementById('share-date-picker');
   if (!ov || !pr) return;
 
-  // Show the date picker
   if (pickerRow) pickerRow.style.display = '';
 
-  // Populate the day picker
-  if (picker) {
-    picker.innerHTML = '';
-    const todayDate = new Date().getDate();
-    data.days.forEach(day => {
-      const dNum = +day.date.split('-')[0];
-      const dow  = new Date(data.year, data.monthNum-1, dNum).getDay();
-      const opt  = document.createElement('option');
-      opt.value  = day.date;
-      opt.textContent = `${day.date} ${data.monthName} (${WDAY_S[dow]})`;
-      if (dNum === todayDate) opt.selected = true;
-      picker.appendChild(opt);
-    });
+  if (dateInput) {
+    // Default to today — no min/max: timetables repeat every year so any date works
+    const now = new Date();
+    dateInput.value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
 
-    const updatePreview = () => {
-      const row  = data.days.find(d => d.date === picker.value) || data.days[0];
-      const text = buildTodayShare(data, row);
+    const updatePreview = async () => {
+      const val = dateInput.value; // YYYY-MM-DD
+      if (!val) return;
+      const [y, m, d] = val.split('-').map(Number);
+
+      // Re-use already-loaded data if possible; otherwise fetch on the fly
+      let monthData;
+      if (m === S.todayMonth && S.todayData) {
+        monthData = S.todayData;
+      } else if (m === S.tableMonth && S.tableData) {
+        monthData = S.tableData;
+      } else {
+        pr.textContent = 'Loading…';
+        try { monthData = await loadData(S.zone, m); }
+        catch(e) { pr.textContent = 'No data for that month.'; ov._text = ''; return; }
+      }
+
+      const dayRow = findRowByDate(monthData, new Date(y, m-1, d));
+      if (!dayRow) { pr.textContent = 'No data for that date.'; ov._text = ''; return; }
+
+      const text = buildTodayShare(monthData, dayRow, y); // pass display year from picker
       pr.textContent = text;
-      ov._text = text;
+      ov._text       = text;
+      ov._shareCtx   = { type: 'today', data: monthData, row: dayRow, year: y };
     };
-    picker.onchange = updatePreview;
+
+    dateInput.onchange = updatePreview;
     updatePreview();
   }
 
   ov.classList.add('visible');
 }
 
-function openShareMonth(data) {
+function openShareMonth(data, displayYear) {
   if (!data) { alert('No data loaded yet.'); return; }
   const ov        = document.getElementById('share-modal-overlay');
   const pr        = document.getElementById('share-preview-text');
   const pickerRow = document.getElementById('share-date-picker');
   if (!ov || !pr) return;
 
-  // Hide day picker for month share
   if (pickerRow) pickerRow.style.display = 'none';
 
-  const text = buildMonthShare(data);
+  const yr   = displayYear || S.year;
+  const text = buildMonthShare(data, yr);
   pr.textContent = text;
-  ov._text = text;
+  ov._text       = text;
+  ov._shareCtx   = { type: 'month', data, year: yr };
   ov.classList.add('visible');
 }
 
@@ -416,7 +738,7 @@ function populateZones(zones){
   sel.innerHTML='';
   zones.forEach(z=>{
     const o=document.createElement('option');
-    o.value=z.id; o.textContent=`Zone ${z.id} — ${z.districts.join(', ')}`;
+    o.value=z.id; o.textContent=z.districts.join(', ');
     if(z.id===S.zone) o.selected=true;
     sel.appendChild(o);
   });
@@ -439,37 +761,71 @@ function pushParams(){
 }
 
 // ── CORE RENDER SPLIT ─────────────────────────────────────
-async function renderToday(){
-  const panel=document.getElementById('prayer-list');
-  if(panel) panel.innerHTML='<div class="loading-block"><div class="spinner"></div></div>';
+async function renderToday() {
+  const panel = document.getElementById('prayer-list');
+  if (panel) panel.innerHTML = '<div class="loading-block"><div class="spinner"></div></div>';
+
   try {
-    const data=await loadData(S.zone, S.todayMonth);
-    S.todayData=data;
-    const row=findTodayRow(data);
-    const {current,next}=prayerStatus(row);
-    renderHero(data,row);
-    renderFeatured(row,current,next);
-    renderList(row,current,next);
+    // 1. Load Today's Data
+    const data = await loadData(S.zone, S.todayMonth);
+    S.todayData = data;
+    const row = findTodayRow(data);
+    const status = prayerStatus(row);
+
+    // 2. Identify the Countdown Target
+    let countdownRow = row;
+    if (status.isNextDay) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      // Look for tomorrow's row in current data
+      let tRow = findRowByDate(data, tomorrow);
+      
+      // Rollover: If tomorrow is a new month, fetch the next file
+      if (!tRow) {
+        try {
+          const nextMonthData = await loadData(S.zone, tomorrow.getMonth() + 1);
+          tRow = findRowByDate(nextMonthData, tomorrow);
+        } catch (e) { console.error("Could not load next month data"); }
+      }
+      if (tRow) countdownRow = tRow;
+    }
+
+    // 3. Render everything
+    const tmrwRow = status.isNextDay ? countdownRow : null;
+    renderHero(data, row, tmrwRow, status.isNextDay);
+    renderFeatured(countdownRow, status.current, status.next);
+    renderList(row, status.current, status.next, status.isNextDay, tmrwRow);
     renderImsakIftar(row);
     renderApt(data);
 
+    // 4. Start the Timer
     clearInterval(S.tickTimer);
-    let lastCur=current;
-    S.tickTimer=setInterval(()=>{
-      const r=findTodayRow(S.todayData);
-      const {current:c,next:n}=prayerStatus(r);
-      renderCountdown(r,n);
-      if(c!==lastCur){
-        lastCur=c;
-        renderFeatured(r,c,n);
-        renderList(r,c,n);
-        renderHero(S.todayData,r);
+    S.tickTimer = setInterval(() => {
+      const r = findTodayRow(S.todayData);
+      const s = prayerStatus(r);
+      
+      // Update countdown to tomorrow if needed
+      let cRow = r;
+      if (s.isNextDay) {
+        const tmrw = new Date();
+        tmrw.setDate(tmrw.getDate() + 1);
+        cRow = findRowByDate(S.todayData, tmrw) || countdownRow;
       }
-    },1000);
-    renderCountdown(row,next);
-  } catch(e){
+
+      renderCountdown(cRow, s.next, s.isNextDay);
+
+      // If a prayer starts (e.g., midnight passes), refresh the page
+      if (s.current === null && r.date !== row.date) {
+        location.reload(); 
+      }
+    }, 1000);
+
+    renderCountdown(countdownRow, status.next, status.isNextDay);
+
+  } catch (e) {
     console.error(e);
-    if(panel) panel.innerHTML=`<div class="loading-block" style="color:#B82020;">Failed to load.<br><small>${e.message}</small></div>`;
+    if (panel) panel.innerHTML = `<div class="loading-block" style="color:#B82020;">Failed to load times.</div>`;
   }
 }
 
@@ -513,7 +869,7 @@ async function init(){
   if(p.get('month')) S.tableMonth=parseInt(p.get('month'));
 
   renderHeader();
-  S.clockTimer=setInterval(renderHeader,30000);
+  S.clockTimer = setInterval(renderHeader, 1000); // 1s interval for live seconds
 
   try{const{zones}=await loadZones();S.zones=zones;populateZones(zones);}catch(e){}
   populateMonths();
@@ -535,7 +891,7 @@ async function init(){
     openShareToday(S.todayData);
   });
   document.getElementById('btn-share-month')?.addEventListener('click',()=>{
-    openShareMonth(S.tableData);
+    openShareMonth(S.tableData, S.year);
   });
 
   // Modal controls
@@ -555,6 +911,30 @@ async function init(){
     const t=document.getElementById('share-modal-overlay')?._text||'';
     if(navigator.share){try{await navigator.share({title:'Sri Lanka Prayer Times',text:t});}catch{}}
     else{window.open(`https://wa.me/?text=${encodeURIComponent(t)}`,'_blank');}
+  });
+
+  // Image generation button
+  document.getElementById('btn-share-img')?.addEventListener('click', async () => {
+    const ov  = document.getElementById('share-modal-overlay');
+    const ctx = ov?._shareCtx;
+    if (!ctx) return;
+
+    const btn = document.getElementById('btn-share-img');
+    if (btn) { btn.textContent = '⏳ …'; btn.disabled = true; }
+
+    try {
+      let canvas, filename;
+      if (ctx.type === 'today') {
+        canvas   = generateDayCanvas(ctx.data, ctx.row, ctx.year);
+        filename = `prayer-${ctx.row.date}-${ctx.data.monthName}-${ctx.year}.png`.toLowerCase();
+      } else {
+        canvas   = generateMonthCanvas(ctx.data, ctx.year);
+        filename = `prayer-${ctx.data.monthName}-${ctx.year}.png`.toLowerCase();
+      }
+      await shareCanvasImage(canvas, filename);
+    } catch(e) { console.error(e); alert('Could not generate image.'); }
+
+    if (btn) { btn.textContent = '🖼️ Image'; btn.disabled = false; }
   });
 
   await renderToday();
