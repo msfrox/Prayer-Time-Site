@@ -9,8 +9,9 @@
 'use strict';
 
 // ── Version ───────────────────────────────────────────────
-// Semver: bump PATCH for bug fixes / data updates, MINOR for new features,
-// MAJOR for full redesigns. Update README version history when you bump.
+// Semver: bump PATCH for tiny fixes / data-only updates (new year JSON etc.),
+// MINOR for improvements / bug fixes, MAJOR for new features or redesigns.
+// Update README version history when you bump.
 // Shown in the footer so users + reports can identify the build.
 const SITE_VERSION = '6.2.0';
 

@@ -289,9 +289,9 @@ The site follows **semver** (`MAJOR.MINOR.PATCH`), displayed in the footer of th
 
 | Change type | Example | When to bump |
 |-------------|---------|--------------|
-| **PATCH** `x.x.↑` | `6.2.0 → 6.2.1` | Bug fix, data update (new year JSON), wording change |
-| **MINOR** `x.↑.0` | `6.2.0 → 6.3.0` | New feature or meaningful UX improvement |
-| **MAJOR** `↑.0.0` | `6.2.0 → 7.0.0` | Full redesign or architectural overhaul |
+| **PATCH** `x.x.↑` | `6.2.0 → 6.2.1` | Tiny fix, wording change, new year data update |
+| **MINOR** `x.↑.0` | `6.2.0 → 6.3.0` | Bug fix, improvement, performance tweak |
+| **MAJOR** `↑.0.0` | `6.2.0 → 7.0.0` | New feature, new section, or full redesign |
 
 **How to bump the version when making a change:**
 1. Update `SITE_VERSION` in `assets/js/app.js`
