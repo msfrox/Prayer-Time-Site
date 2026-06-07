@@ -1149,3 +1149,68 @@ body {
   .hero-timer { font-size: 30px; }
   .featured-time { font-size: 40px; }
 }
+
+/* ── Toast (location notices) ─────────────────────────────── */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%) translateY(16px);
+  max-width: min(92vw, 460px);
+  padding: 12px 18px;
+  background: var(--olive-800);
+  color: #FFFFFF;
+  font: 500 14px/1.4 var(--sans);
+  text-align: center;
+  border-radius: var(--r2);
+  box-shadow: var(--s3);
+  border: 1px solid rgba(184,137,42,.35);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 600;
+  transition: opacity var(--ease), transform var(--ease);
+}
+.toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── First-run "locate me" soft-ask card ──────────────────── */
+.locate-prompt {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%) translateY(20px);
+  width: min(94vw, 460px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  color: var(--ink-900);
+  border: 1px solid var(--ink-100);
+  border-top: 3px solid var(--gold-500);
+  border-radius: var(--r2);
+  box-shadow: var(--s4);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 590;
+  transition: opacity var(--ease), transform var(--ease);
+}
+.locate-prompt.visible { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+.locate-prompt .lp-text { font: 600 14.5px/1.35 var(--sans); }
+.locate-prompt .lp-actions { display: flex; gap: 8px; margin-left: auto; }
+.locate-prompt button {
+  font: 600 13.5px var(--sans);
+  padding: 8px 16px;
+  border-radius: var(--r1);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: filter var(--ease), background var(--ease);
+}
+.locate-prompt .lp-allow { background: var(--gold-500); color: #fff; }
+.locate-prompt .lp-allow:hover { filter: brightness(1.06); }
+.locate-prompt .lp-skip { background: transparent; color: var(--ink-400); border-color: var(--ink-100); }
+.locate-prompt .lp-skip:hover { background: var(--ink-50); }

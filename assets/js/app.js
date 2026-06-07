@@ -26,16 +26,13 @@ const HIJ_MON   = ['Muharram','Safar',"Rabi' al-Awwal","Rabi' al-Thani",
                    'Jumada al-Ula','Jumada al-Akhirah','Rajab',"Sha'ban",
                    'Ramadan','Shawwal',"Dhu al-Qi'dah",'Dhu al-Hijjah'];
 
-// Zone geo-centres for auto-locate
-const ZONES_GEO = [
-  {id:'01',lat:6.93, lng:79.95},{id:'02',lat:9.67, lng:80.01},
-  {id:'03',lat:9.00, lng:80.48},{id:'04',lat:8.58, lng:79.95},
-  {id:'05',lat:8.30, lng:80.45},{id:'06',lat:7.50, lng:80.38},
-  {id:'07',lat:7.30, lng:80.64},{id:'08',lat:7.70, lng:81.70},
-  {id:'09',lat:8.59, lng:81.23},{id:'10',lat:6.99, lng:81.06},
-  {id:'11',lat:6.70, lng:80.38},{id:'12',lat:6.05, lng:80.22},
-  {id:'13',lat:6.12, lng:81.12},
-];
+// Geofencing: real ACJU zone polygons (lazy-loaded on first "Locate Me").
+// Points within SEA_BUFFER_KM of the coast snap to the nearest zone; beyond
+// that we report "outside Sri Lanka".
+const ZONES_GEO_URL = `${DATA_BASE}/zones.geojson`;
+const SEA_BUFFER_KM  = 8;
+const LS_ZONE  = 'slpt_zone';      // remembered zone across visits
+const LS_ASKED = 'slpt_asked';     // first-run soft-ask already shown
 
 // ── State ─────────────────────────────────────────────────
 const S = {
@@ -48,6 +45,7 @@ const S = {
   year:       new Date().getFullYear(),
   tickTimer:  null,
   clockTimer: null,
+  zoneGeo:    null,   // cached zones.geojson features (lazy-loaded on Locate Me)
 };
 
 // ── Utils ─────────────────────────────────────────────────
@@ -112,18 +110,126 @@ function hijriShort() {
   } catch { return ''; }
 }
 
-// ── FIX: Correct Haversine formula ─────────────────────────
-function geoKm(lat1, lng1, lat2, lng2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat/2)**2
-          + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180)
-          * Math.sin(dLng/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+// ── Geofencing helpers (no external libs) ──────────────────
+// Ray-casting point-in-polygon for one linear ring. ring = [[lng,lat],...]
+function pointInRing(lng, lat, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    const intersect = ((yi > lat) !== (yj > lat)) &&
+      (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
 }
-function nearestZone(lat, lng) {
-  return ZONES_GEO.reduce((b,z) => geoKm(lat,lng,z.lat,z.lng) < geoKm(lat,lng,b.lat,b.lng) ? z : b).id;
+// A GeoJSON polygon = [outerRing, hole1, hole2, ...]. Inside outer & outside all holes.
+function pointInPolygon(lng, lat, poly) {
+  if (!pointInRing(lng, lat, poly[0])) return false;
+  for (let h = 1; h < poly.length; h++) if (pointInRing(lng, lat, poly[h])) return false;
+  return true;
+}
+// Feature geometry may be Polygon or MultiPolygon.
+function pointInFeature(lng, lat, geom) {
+  if (geom.type === 'Polygon')      return pointInPolygon(lng, lat, geom.coordinates);
+  if (geom.type === 'MultiPolygon') return geom.coordinates.some(p => pointInPolygon(lng, lat, p));
+  return false;
+}
+
+// Distance (km) from a point to a line segment, on an equirectangular plane
+// scaled by latitude — accurate enough at Sri Lanka scale for the sea buffer.
+function distPointToSegKm(lng, lat, ax, ay, bx, by) {
+  const kx = 111.32 * Math.cos(lat * Math.PI / 180), ky = 110.57; // km per deg
+  const px = lng * kx, py = lat * ky;
+  const x1 = ax * kx, y1 = ay * ky, x2 = bx * kx, y2 = by * ky;
+  const dx = x2 - x1, dy = y2 - y1;
+  const len2 = dx * dx + dy * dy;
+  let t = len2 ? ((px - x1) * dx + (py - y1) * dy) / len2 : 0;
+  t = Math.max(0, Math.min(1, t));
+  const cx = x1 + t * dx, cy = y1 + t * dy;
+  return Math.hypot(px - cx, py - cy);
+}
+function distPointToFeatureKm(lng, lat, geom) {
+  const polys = geom.type === 'MultiPolygon' ? geom.coordinates
+              : geom.type === 'Polygon'      ? [geom.coordinates] : [];
+  let min = Infinity;
+  for (const poly of polys) for (const ring of poly) {
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const d = distPointToSegKm(lng, lat, ring[j][0], ring[j][1], ring[i][0], ring[i][1]);
+      if (d < min) min = d;
+    }
+  }
+  return min;
+}
+
+// Lazy-load the zone polygons once, cache on S.
+async function loadZoneGeo() {
+  if (S.zoneGeo) return S.zoneGeo;
+  const r = await fetch(ZONES_GEO_URL);
+  if (!r.ok) throw new Error('zones.geojson failed');
+  S.zoneGeo = (await r.json()).features;
+  return S.zoneGeo;
+}
+
+// Resolve a GPS coordinate to a zone.
+//   { zone:'NN', status:'exact'    } → point is inside a zone
+//   { zone:'NN', status:'nearshore'} → within SEA_BUFFER_KM of the coast, snapped
+//   { zone:null, status:'outside'  } → not in / near Sri Lanka
+function resolveZone(lat, lng) {
+  const feats = S.zoneGeo || [];
+  for (const f of feats) {
+    if (pointInFeature(lng, lat, f.geometry)) return { zone: f.properties.zone, status: 'exact' };
+  }
+  let best = null, bestKm = Infinity;
+  for (const f of feats) {
+    const d = distPointToFeatureKm(lng, lat, f.geometry);
+    if (d < bestKm) { bestKm = d; best = f.properties.zone; }
+  }
+  if (best && bestKm <= SEA_BUFFER_KM) return { zone: best, status: 'nearshore' };
+  return { zone: null, status: 'outside' };
+}
+
+// ── Tiny toast (no markup needed) ──────────────────────────
+let _toastTimer = null;
+function toast(msg) {
+  let el = document.getElementById('app-toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'app-toast';
+    el.className = 'toast';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.add('visible');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('visible'), 4000);
+}
+
+// ── Remembered zone (localStorage, best-effort) ────────────
+function saveZone(z) { try { localStorage.setItem(LS_ZONE, z); } catch {} }
+function savedZone()  { try { return localStorage.getItem(LS_ZONE); } catch { return null; } }
+function markAsked()  { try { localStorage.setItem(LS_ASKED, '1'); } catch {} }
+function wasAsked()   { try { return localStorage.getItem(LS_ASKED) === '1'; } catch { return false; } }
+
+// ── First-run soft-ask card ────────────────────────────────
+// Shown once on a fresh visit: tapping "Allow" triggers the real GPS prompt.
+function showLocatePrompt() {
+  if (document.getElementById('locate-prompt')) return;
+  const card = document.createElement('div');
+  card.id = 'locate-prompt';
+  card.className = 'locate-prompt';
+  card.innerHTML =
+    `<span class="lp-text">📍 Show prayer times for your area?</span>
+     <span class="lp-actions">
+       <button class="lp-allow" id="lp-allow">Allow</button>
+       <button class="lp-skip" id="lp-skip">Not now</button>
+     </span>`;
+  document.body.appendChild(card);
+  requestAnimationFrame(() => card.classList.add('visible'));
+
+  const close = () => { markAsked(); card.classList.remove('visible'); setTimeout(() => card.remove(), 250); };
+  document.getElementById('lp-allow').addEventListener('click', () => { close(); handleLocate(); });
+  document.getElementById('lp-skip').addEventListener('click', close);
 }
 
 // ── Data fetching ─────────────────────────────────────────
@@ -832,32 +938,65 @@ async function renderTable(){
   }
 }
 
-// ── Auto-locate ────────────────────────────────────────────
+// ── Auto-locate (real geofencing) ──────────────────────────
 function handleLocate(){
-  if(!navigator.geolocation){alert('Geolocation not supported.');return;}
   const btn=document.getElementById('btn-locate');
+  const resetBtn=()=>{ if(btn){btn.textContent='📍 Locate Me';btn.classList.remove('locating');} };
+  if(!navigator.geolocation){ toast('Geolocation isn’t supported on this device.'); return; }
   if(btn){btn.textContent='⏳ Locating…';btn.classList.add('locating');}
+
   navigator.geolocation.getCurrentPosition(
-    pos=>{
-      S.zone=nearestZone(pos.coords.latitude,pos.coords.longitude);
+    async pos=>{
+      try {
+        await loadZoneGeo();
+      } catch(e) {
+        console.error(e); resetBtn(); toast('Couldn’t load location data. Please pick your district.');
+        return;
+      }
+      const { latitude:lat, longitude:lng } = pos.coords;
+      const { zone, status } = resolveZone(lat, lng);
+
+      if (status === 'outside' || !zone) {
+        resetBtn();
+        toast('You appear to be outside Sri Lanka — please pick your district manually.');
+        return;
+      }
+
+      S.zone = zone;
+      saveZone(zone);                       // remember for return visits
       const sel=document.getElementById('zone-selector');
       if(sel) sel.value=S.zone;
       renderToday(); renderTable(); pushParams();
-      if(btn){btn.textContent='📍 Locate Me';btn.classList.remove('locating');}
+      resetBtn();
+      const where = S.zones.find(z => z.id === zone)?.districts.join(', ') || `Zone ${zone}`;
+      toast(status === 'nearshore'
+        ? `Snapped to nearest coastal zone — ${where}.`
+        : `📍 Showing times for ${where}.`);
     },
-    ()=>{
-      alert('Could not detect location. Please select your zone manually.');
-      if(btn){btn.textContent='📍 Locate Me';btn.classList.remove('locating');}
+    err=>{
+      resetBtn();
+      toast(err && err.code===1
+        ? 'Location permission denied — please pick your district manually.'
+        : 'Couldn’t detect your location. Please pick your district manually.');
     },
-    {timeout:8000,maximumAge:300000}
+    {enableHighAccuracy:true, timeout:10000, maximumAge:300000}
   );
 }
 
 // ── Init ──────────────────────────────────────────────────
 async function init(){
   const p=new URLSearchParams(location.search);
-  if(p.get('zone'))  S.zone=p.get('zone').padStart(2,'0');
   if(p.get('month')) S.tableMonth=parseInt(p.get('month'));
+
+  // Zone source priority: shared link (?zone=) > remembered > first-run auto-detect
+  let firstRun = false;
+  if (p.get('zone')) {
+    S.zone = p.get('zone').padStart(2,'0');
+  } else if (savedZone()) {
+    S.zone = savedZone();
+  } else {
+    firstRun = true;   // no link, never chosen before → offer auto-detect
+  }
 
   renderHeader();
   S.clockTimer = setInterval(renderHeader, 1000); // 1s interval for live seconds
@@ -867,6 +1006,7 @@ async function init(){
 
   document.getElementById('zone-selector')?.addEventListener('change',e=>{
     S.zone=e.target.value;
+    saveZone(S.zone);   // a manual pick becomes the remembered zone
     renderToday(); renderTable(); pushParams();
   });
 
@@ -930,6 +1070,9 @@ async function init(){
 
   await renderToday();
   await renderTable();
+
+  // First visit with no shared-link zone → gently offer auto-detect.
+  if (firstRun && !wasAsked() && navigator.geolocation) showLocatePrompt();
 }
 
 document.addEventListener('DOMContentLoaded',init);

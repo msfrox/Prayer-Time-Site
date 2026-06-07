@@ -1,0 +1,7 @@
+node_modules/
+package-lock.json
+adm2.geojson
+adm3.geojson
+zones_zoned.geojson
+zones_full.geojson
+cand.geojson

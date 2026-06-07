@@ -1,0 +1,12 @@
+{
+  "name": "slpt-zone-build",
+  "version": "1.0.0",
+  "description": "Build scripts to generate data/zones.geojson (ACJU prayer-time zone polygons)",
+  "private": true,
+  "type": "commonjs",
+  "license": "CC-BY-NC-SA-4.0",
+  "dependencies": {
+    "@turf/turf": "^7.3.5",
+    "mapshaper": "^0.7.22"
+  }
+}
