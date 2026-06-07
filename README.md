@@ -56,8 +56,17 @@ derivative stays free too.
 
 **6. Data comes from one source: ACJU.**
 We do not calculate prayer times ourselves. The timetables are transcribed directly
-from the official ACJU PDF timetables. If ACJU updates their tables, we update our
-JSON. This is a deliberate choice to avoid calculation disagreements.
+from the official ACJU PDF timetables. This is a deliberate choice to avoid
+calculation disagreements.
+
+**7. The timetables are solar-based and valid for every year.**
+Islamic prayer times are determined by the sun's position, which follows the Gregorian
+(solar) calendar. The same date — say, 7 June — has essentially identical prayer times
+in 2026, 2027, 2028, and beyond. The `year` field inside each JSON file is just
+compilation metadata; the actual times are permanent. The app always displays the
+current real year (`new Date().getFullYear()`), never the metadata year. The data
+files **do not need to be replaced each year** unless ACJU itself revises the
+timetable.
 
 ---
 
@@ -203,8 +212,13 @@ the first visit.
 
 ## Updating prayer-time data
 
-The `data/` timetables are independent of the site code, so they can be refreshed
-yearly without touching anything else.
+**The data files do not need to be replaced each year.** Prayer times are solar-based
+and repeat on the same Gregorian dates every year. The app always uses the current
+calendar year for display — the `year` field in each JSON is compilation metadata only.
+
+The only reason to update the `data/` files is if **ACJU revises the timetable itself**
+(e.g. they recalculate zone boundaries or adjust calculation methodology). In that case,
+replace the relevant JSON files with fresh values from the new ACJU PDF.
 
 Each `zoneNN-MM.json` has this structure:
 
@@ -308,6 +322,7 @@ is replaced at deploy time; the file in the repo always shows the placeholder.
 
 | Version | What changed |
 |---------|-------------|
+| **v6.3.0** | *Bug fix + docs.* Fixed day-of-week in monthly table using `data.year` (2026) instead of current real year — days would have been one off in 2027+. Documented solar-based data permanence: JSON files valid for all years, no yearly refresh needed. |
 | **v6.2.0** | *PWA.* Added `manifest.json`, service worker (`sw.js`) with cache-first shell + stale-while-revalidate data strategy, offline fallback. Auto-versioned SW via git SHA injection in GitHub Actions. Site semver added to footer. |
 | **v6.1.0** | *Performance.* Self-hosted Plus Jakarta Sans (variable font, eliminates Google Fonts dependency). Replaced GTM (345 KB) with direct GA4 snippet (8 KB, async). Inlined `zones.json`. Monthly table loads in background. README rewritten. |
 | **v6.0** | *Geofenced location.* Replaced nearest-city guessing with real point-in-polygon zone detection using ADM2/ADM3 boundaries. Added first-run location prompt, remembered zone (localStorage), coastal sea-buffer snap, out-of-bounds handling. Full reproducible build pipeline in `build/`. |

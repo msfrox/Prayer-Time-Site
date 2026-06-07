@@ -13,7 +13,7 @@
 // MINOR for improvements / bug fixes, MAJOR for new features or redesigns.
 // Update README version history when you bump.
 // Shown in the footer so users + reports can identify the build.
-const SITE_VERSION = '6.2.0';
+const SITE_VERSION = '6.3.0';
 
 // ── Constants ─────────────────────────────────────────────
 const DATA_BASE = './data';
@@ -448,7 +448,9 @@ function renderMonthly(data){
   data.days.forEach(day=>{
     const[dNum]=day.date.split('-');
     const isToday=+dNum===todayNum&&data.monthNum===todayMon;
-    const dow=new Date(data.year,data.monthNum-1,+dNum).getDay();
+    // Use S.year (current real year) not data.year — prayer times are solar and
+    // repeat every year, but the day of week shifts, so we need the actual year.
+    const dow=new Date(S.year,data.monthNum-1,+dNum).getDay();
     const tr=document.createElement('tr');
     if(isToday) tr.className='today-monthly';
     if(dow===5) tr.classList.add('is-friday');
