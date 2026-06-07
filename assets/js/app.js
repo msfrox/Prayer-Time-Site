@@ -11,6 +11,24 @@
 // ── Constants ─────────────────────────────────────────────
 const DATA_BASE = './data';
 
+// zones.json inlined — eliminates one HTTP request on every page load.
+// Update this object if zone boundaries or district names ever change.
+const ZONES_INLINE = {"zones":[
+  {"id":"01","name":"Zone 01","districts":["Colombo","Gampaha","Kalutara"]},
+  {"id":"02","name":"Zone 02","districts":["Jaffna","Nallur"]},
+  {"id":"03","name":"Zone 03","districts":["Mullaitivu (excl. Nallur)","Kilinochchi","Vavuniya"]},
+  {"id":"04","name":"Zone 04","districts":["Mannar","Puttalam"]},
+  {"id":"05","name":"Zone 05","districts":["Anuradhapura","Polonnaruwa"]},
+  {"id":"06","name":"Zone 06","districts":["Kurunegala"]},
+  {"id":"07","name":"Zone 07","districts":["Kandy","Matale","Nuwara Eliya"]},
+  {"id":"08","name":"Zone 08","districts":["Batticaloa","Ampara"]},
+  {"id":"09","name":"Zone 09","districts":["Trincomalee"]},
+  {"id":"10","name":"Zone 10","districts":["Badulla","Monaragala","Padiyatalawa","Dehiattakandiya"]},
+  {"id":"11","name":"Zone 11","districts":["Ratnapura","Kegalle"]},
+  {"id":"12","name":"Zone 12","districts":["Galle","Matara"]},
+  {"id":"13","name":"Zone 13","districts":["Hambantota"]}
+]};
+
 const PRAYERS   = ['fajr','sunrise','luhr','asr','magrib','isha'];
 const P_LABEL   = { fajr:'Fajr', sunrise:'Sunrise', luhr:'Zuhr', asr:'Asr', magrib:'Maghrib', isha:'Isha' };
 const P_ICON    = { fajr:'🌙', sunrise:'🌅', luhr:'☀️', asr:'🌤️', magrib:'🏙️', isha:'🌙' };
@@ -234,7 +252,7 @@ function showLocatePrompt() {
 
 // ── Data fetching ─────────────────────────────────────────
 async function loadZones(){
-  const r=await fetch(`${DATA_BASE}/zones.json`); return r.json();
+  return ZONES_INLINE; // inlined above — no fetch needed
 }
 async function loadData(zone,month){
   const k=`zone${String(zone).padStart(2,'0')}-${String(month).padStart(2,'0')}`;
@@ -1069,7 +1087,7 @@ async function init(){
   });
 
   await renderToday();
-  await renderTable();
+  renderTable(); // intentionally not awaited — loads in background after today's times are shown
 
   // First visit with no shared-link zone → gently offer auto-detect.
   if (firstRun && !wasAsked() && navigator.geolocation) showLocatePrompt();

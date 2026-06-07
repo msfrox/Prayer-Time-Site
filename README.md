@@ -17,41 +17,83 @@ Picking the wrong zone gives the wrong times, so the headline feature is getting
 into the *right* zone automatically — using your phone's location and the real
 administrative boundaries — while still letting you choose manually at any time.
 
-It's a single static page (HTML/CSS/vanilla JS, no framework, no backend). All
-timetable data and zone boundaries are plain files served straight from the host,
+It's a **single static page** (HTML / CSS / vanilla JS, no framework, no backend). All
+timetable data and zone boundary files are plain JSON served directly from GitHub Pages,
 so it loads quickly and keeps working offline once cached.
+
+---
+
+## Design principles
+
+These decisions were made at the start and remain the guiding constraints:
+
+**1. No framework, no build step for the site itself.**
+The site is a single `index.html`, one CSS file, one JS file. A visitor opens it and it
+works — no React, no bundler, no hydration, nothing that requires a build pipeline.
+The only build step that exists is a one-time offline script (`build/`) that generated
+the geofencing boundary file; it never runs in production.
+
+**2. No server, no database.**
+All data lives as flat JSON files in `data/`. The site fetches exactly what it needs
+(one zone + one month at a time, ~3–4 KB per request), not all 156 files at once.
+There is nothing to maintain, nothing to go down except GitHub Pages.
+
+**3. Load only what you need, when you need it.**
+On page open the app fetches two small files: `zones.json` (zone list, ~2 KB) and one
+`zoneNN-MM.json` (the selected zone's current month, ~4 KB). That is all. The
+geofencing boundary file (`zones.geojson`, ~118 KB) is only fetched if the user
+clicks "Locate Me". Other month/zone files are fetched only when the user changes the
+selector. No bulk loading, no pre-fetching everything.
+
+**4. Privacy-first, no personal data sent anywhere.**
+The only thing stored on the user's device is their chosen zone (localStorage), so the
+site remembers it on the next visit without sending anything to a server. GPS
+coordinates never leave the browser — zone detection is pure client-side JS.
+
+**5. Non-commercial, always free.**
+No ads, no paywalls, no premium features. CC BY-NC-SA 4.0 licence ensures that any
+derivative stays free too.
+
+**6. Data comes from one source: ACJU.**
+We do not calculate prayer times ourselves. The timetables are transcribed directly
+from the official ACJU PDF timetables. If ACJU updates their tables, we update our
+JSON. This is a deliberate choice to avoid calculation disagreements.
+
+---
 
 ## Features
 
 **Times & calendar**
 - Prayer times for all **13 ACJU zones** (Fajr, Sunrise, Zuhr, Asr, Maghrib, Isha)
 - The current prayer is highlighted, with a **live countdown** to the next one
-- Correct roll-over to *tomorrow's Fajr* after Isha
+- Correct roll-over to *tomorrow's Fajr* after Isha (fetches next month if needed)
 - **Imsak / Sahr end** (2 min before Fajr) and **Iftar** (Maghrib) shown for fasting
-- Live clock with **Gregorian + Hijri** dates
-- **Weekly and full monthly** timetable views, switchable by month
-- **High-rise apartment adjustment** table (time offsets by building height)
+- Live clock with **Gregorian + Hijri** dates (Umm al-Qura calendar via browser `Intl`)
+- **Full monthly timetable** view, switchable by month
+- **High-rise apartment adjustment** table (minute offsets for buildings 6–87 floors)
 
 **Smart location (geofencing)**
-- **"Locate Me"** uses real **point-in-polygon** detection against the actual ACJU
-  zone boundaries — not a rough nearest-city guess — so it's accurate to the district
-- **First-run prompt**: a gentle "Show prayer times for your area?" card on a first
-  visit; tapping *Allow* auto-selects your zone
-- **Remembers your zone** across visits (stored locally on your device) — no repeat prompts
-- **Coastal sea-buffer**: locations a few km offshore still snap to the nearest zone
-- **Out-of-bounds handling**: if you're outside Sri Lanka, it tells you and leaves the
-  picker to you instead of guessing
-- Manual **district dropdown** always available as an override
+- **"Locate Me"** uses real **point-in-polygon** detection against ACJU zone polygons —
+  not a rough nearest-city guess — so accuracy is to the district boundary
+- **First-run prompt**: a gentle "Show prayer times for your area?" card on the very
+  first visit; tapping *Allow* triggers the real GPS prompt
+- **Remembers your zone** across visits (stored locally on device) — no repeat prompts
+- **Coastal sea-buffer**: if you're a few km offshore (boat, beach), it still snaps to
+  the nearest zone rather than reporting "outside Sri Lanka"
+- **Out-of-bounds handling**: if you're nowhere near Sri Lanka, it says so and leaves
+  the picker to you instead of guessing
+- **Manual district dropdown** always available as an override
 
 **Sharing**
-- Copy a clean text timetable, use the native share sheet, or **generate an image**
-  (beautifully laid-out day card or full-month card) to share on WhatsApp etc.
-- Shareable links carry the selected zone (`?zone=07`)
+- Copy a clean plain-text timetable (works on any phone)
+- Native share sheet (mobile)
+- **Generate an image** — beautifully laid-out day card or full-month card for WhatsApp
+- Shareable deep-links carry the selected zone and month (`?zone=07&month=8`)
 
 **Quality of life**
 - Fully **responsive** for mobile and desktop
-- **Works offline** once loaded (files cached by the browser)
-- Zone boundary file is **lazy-loaded** only when you use location — zero extra weight otherwise
+- Works offline once loaded (files cached by the browser)
+- Zone boundary file is lazy-loaded only when location is used — zero extra cost otherwise
 
 ## Upcoming
 
@@ -62,110 +104,196 @@ so it loads quickly and keeps working offline once cached.
 
 ---
 
+## How data loads (and what does NOT load)
+
+A common question: does the site download all district data on start-up?
+
+**No.** The loading sequence is:
+
+1. `zones.json` — the name/district list (~2 KB). This populates the dropdown.
+2. `zoneNN-MM.json` — **one file** for the selected zone and current month (~3–4 KB).
+   This drives everything on screen: today's times, countdown, monthly table.
+3. If the user changes zone or month, one new `zoneNN-MM.json` is fetched.
+4. If the user clicks "Locate Me", `zones.geojson` (~118 KB, ~35 KB gzipped) is fetched
+   once and cached in memory for the session.
+
+All 156 zone-month files (13 zones × 12 months) are in the repo for completeness, but
+only the one that is currently needed is ever downloaded by a visitor.
+
+---
+
 ## How the geofencing works
 
-`data/zones.geojson` holds the 13 zone polygons, built once from official boundary
-data and bundled with the site (~118 KB, ~35 KB gzipped). On "Locate Me" the app:
+`data/zones.geojson` holds the 13 zone polygons, built once offline from official
+district boundary data. When the user clicks "Locate Me" the app:
 
-1. Reads your GPS coordinate (high-accuracy).
-2. Tests which zone polygon contains the point (ray-casting, handles offshore islands).
-3. If you're just off the coast, snaps to the nearest zone within ~8 km.
-4. If you're nowhere near Sri Lanka, reports it and leaves the choice to you.
+1. Reads the GPS coordinate (high-accuracy, browser `navigator.geolocation`).
+2. Lazy-fetches `zones.geojson` if not already in memory.
+3. Runs a **ray-casting point-in-polygon** test against each zone polygon.
+4. If the point is inside a zone → exact match, done.
+5. If not (e.g. you're on a boat), finds the nearest zone boundary. Within ~8 km →
+   "nearshore snap". Beyond that → "outside Sri Lanka" toast, manual pick requested.
 
-The polygons are derived from district boundaries, with Ampara split at DS-division
-level so **Padiyathalawa** and **Dehiattakandiya** correctly fall in Zone 10. The full,
-reproducible build pipeline lives in [`build/`](build/README.md). Validation against
-known towns and a tens-of-thousands-point accuracy sweep confirm any boundary error
-sits within a few tens of metres of a real zone line — far finer than GPS itself.
+The polygons come from **geoBoundaries ADM2** (district level), with **ADM3** used
+only to split Ampara: the Padiyathalawa and Dehiattakandiya DS divisions are carved
+out of Ampara and assigned to Zone 10, while the remainder of Ampara stays in Zone 08.
+This matches ACJU's actual zone definitions.
+
+Validation: a tens-of-thousands-point accuracy sweep (`build/accuracy-sweep.js`)
+confirms boundary error sits within a few tens of metres of a real zone line — far
+finer than GPS itself.
+
+**Deferred:** ACJU's "Nallur" entry in Zone 02 is the Nallur *Grama Niladhari*
+division in Poonakary DS, Kilinochchi (near Pooneryn, road B357) — *not* Nallur in
+Jaffna city. It is currently left in Zone 03. Once confirmed with ACJU, it can be
+added as a one-line override in `build/build-zones.js` (the `OVERRIDES` section).
+
+---
 
 ## Repository structure
 
 ```
-/                    ← Website (static, deploys as-is)
-├── index.html       ← Main page
+/                        ← Website root (deploys as-is to GitHub Pages)
+├── index.html           ← Entire page structure
 ├── assets/
-│   ├── css/style.css
-│   └── js/app.js    ← App logic incl. geofencing
+│   ├── css/style.css    ← All styling (~33 KB, ~7.5 KB gzip)
+│   └── js/app.js        ← All app logic incl. geofencing (~44 KB, ~14 KB gzip)
 ├── data/
-│   ├── zones.json       ← Zone → district list
-│   ├── zones.geojson    ← 13 zone polygons (for Locate Me)
-│   └── zoneNN-MM.json   ← Times per zone per month (13 × 12 files)
-├── build/           ← One-time scripts to regenerate zones.geojson (see build/README.md)
-├── LICENSE          ← CC BY-NC-SA 4.0
-└── .github/workflows/pages.yml
+│   ├── zones.json           ← Zone → district list (loaded at startup)
+│   ├── zones.geojson        ← 13 zone polygons (lazy-loaded on "Locate Me", ~118 KB)
+│   └── zoneNN-MM.json       ← Times per zone per month; 156 files, one loaded at a time
+├── build/               ← One-time offline scripts — never run in production
+│   ├── build-zones.js       ← Generates zones.geojson from ADM2/ADM3 sources
+│   ├── validate.js          ← Spot-checks known towns against zone output
+│   ├── accuracy-sweep.js    ← Dense random-point accuracy test
+│   ├── adm2.geojson         ← geoBoundaries ADM2 (25 districts)
+│   ├── adm3.geojson         ← geoBoundaries ADM3 (DS divisions, Ampara cut only)
+│   └── package.json         ← turf, mapshaper (build deps only)
+├── CNAME                ← pray.gear.lk custom domain
+├── LICENSE              ← CC BY-NC-SA 4.0
+└── .github/workflows/   ← GitHub Actions Pages deploy on push
 ```
+
+---
+
+## Performance characteristics
+
+**Page weight (compressed / over the wire):**
+
+| Asset | Raw | Transferred |
+|-------|-----|-------------|
+| HTML | 13 KB | 4.7 KB |
+| style.css | 33 KB | 7.5 KB |
+| app.js | 44 KB | 13.7 KB |
+| zones.json (JS fetch) | ~2 KB | ~1 KB |
+| zoneNN-MM.json (JS fetch) | ~4 KB | ~2 KB |
+| Google Fonts (5 woff2) | ~60 KB | ~60 KB |
+| zones.geojson | 118 KB | ~35 KB | ← **only on "Locate Me"** |
+
+The site itself (HTML + CSS + JS + one data file) comes in at roughly **90 KB
+transferred** on a cold load. Fonts add another 60 KB but are cached for a year after
+the first visit.
+
+**What is not loaded by default:**
+- Any zone/month other than the selected one
+- `zones.geojson` (geofencing boundaries)
+- All 155 other `zoneNN-MM.json` files
+
+---
 
 ## Updating prayer-time data
 
 The `data/` timetables are independent of the site code, so they can be refreshed
-yearly without touching anything else. Each `zoneNN-MM.json` looks like:
+yearly without touching anything else.
+
+Each `zoneNN-MM.json` has this structure:
 
 ```json
 {
   "zone": "01",
-  "monthName": "April",
-  "monthNum": 4,
+  "monthName": "June",
+  "monthNum": 6,
   "year": 2026,
+  "zoneName": "Zone 01",
   "districts": ["Colombo", "Gampaha", "Kalutara"],
   "days": [
-    { "date": "1-Apr", "fajr": "4:52 AM", "sunrise": "6:09 AM",
-      "luhr": "12:16 PM", "asr": "3:21 PM", "magrib": "6:21 PM", "isha": "7:30 PM" }
+    { "date": "1-Jun", "fajr": "4:30 AM", "sunrise": "5:54 AM",
+      "luhr": "12:10 PM", "asr": "3:35 PM", "magrib": "6:25 PM", "isha": "7:40 PM" }
   ],
-  "apartmentDiff": { }
+  "apartmentDiff": {
+    "lowRise":  { "stories": "06-35", "heightM": "24-140",  "fajr": -1, "sunrise": -1, "magrib": 1, "isha": 1 },
+    "highRise": { "stories": "35-87", "heightM": "140-350", "fajr": -2, "sunrise": -2, "magrib": 2, "isha": 2 }
+  },
+  "note": "Kindly requested to set the end of Sahr two minutes before Fajr time.",
+  "source": "All Ceylon Jamiyyathul Ulama (ACJU)"
 }
 ```
+
+To update for a new year: replace the 156 JSON files in `data/` with fresh values
+from the new ACJU PDF. The `year` field in each file is metadata only; the app always
+uses the current calendar year for display.
+
+---
 
 ## Zone reference
 
 | Zone | Districts |
 |------|-----------|
 | 01 | Colombo, Gampaha, Kalutara |
-| 02 | Jaffna, Nallur |
-| 03 | Mullaitivu (excl. Nallur), Kilinochchi, Vavuniya |
+| 02 | Jaffna, Nallur *(Nallur GN, Poonakary DS — see Deferred above)* |
+| 03 | Mullaitivu (excl. Nallur GN), Kilinochchi, Vavuniya |
 | 04 | Mannar, Puttalam |
 | 05 | Anuradhapura, Polonnaruwa |
 | 06 | Kurunegala |
 | 07 | Kandy, Matale, Nuwara Eliya |
-| 08 | Batticaloa, Ampara |
+| 08 | Batticaloa, Ampara (excl. Padiyathalawa + Dehiattakandiya DS) |
 | 09 | Trincomalee |
-| 10 | Badulla, Monaragala, Padiyatalawa, Dehiattakandiya |
+| 10 | Badulla, Monaragala, Padiyathalawa DS, Dehiattakandiya DS |
 | 11 | Ratnapura, Kegalle |
 | 12 | Galle, Matara |
 | 13 | Hambantota |
 
+---
+
 ## Deploying (GitHub Pages)
 
-1. Push to GitHub.
+1. Push to `main`.
 2. Settings → Pages → Source: **GitHub Actions**.
-3. `.github/workflows/pages.yml` auto-deploys on every push to `main`.
+3. `.github/workflows/pages.yml` auto-deploys on every push.
+
+Custom domain: `CNAME` file points to `pray.gear.lk`. SSL is handled by Cloudflare
+in front of GitHub Pages (Cloudflare DNS → GitHub Pages origin).
 
 ---
 
 ## Credits & attribution
 
-- **Prayer timetables** — the official work of the **All Ceylon Jamiyyathul Ulama
-  (ACJU)**, prepared from calculations by the late Al-'Alim M.I. Abdus Samad Makdoomi
-  (Rahmatullahi Alayhi). Source: [acju.lk](https://www.acju.lk) · info@acju.lk
+- **Prayer timetables** — official work of the **All Ceylon Jamiyyathul Ulama (ACJU)**,
+  prepared from calculations by the late Al-'Alim M.I. Abdus Samad Makdoomi
+  (Rahmatullahi Alayhi), former president of ACJU and founder of Hassaniyya Arabic
+  College. Source: [acju.lk](https://www.acju.lk) · info@acju.lk · +94 117 490 490
 - **Administrative boundaries** — [geoBoundaries](https://www.geoboundaries.org)
-  (gbOpen, licensed CC BY 4.0), used to derive `data/zones.geojson`.
-- **Typeface** — [Plus Jakarta Sans](https://fonts.google.com/specimen/Plus+Jakarta+Sans) (SIL Open Font License).
-- **Build tooling** — [mapshaper](https://github.com/mbloch/mapshaper) and
-  [Turf.js](https://turfjs.org) (boundary dissolve, simplification, validation);
-  Node.js and Python for the build scripts.
+  (gbOpen, CC BY 4.0), used to derive `data/zones.geojson`.
+- **Typeface** — [Plus Jakarta Sans](https://fonts.google.com/specimen/Plus+Jakarta+Sans)
+  (SIL Open Font License 1.1).
+- **Build tooling** — [Turf.js](https://turfjs.org) (union, difference, point-in-polygon
+  validation) and Node.js.
 - **Maintained by** [@msfrox](https://github.com/msfrox). Developed with assistance
   from Claude (Anthropic).
 
-Thank you to everyone whose open data and open-source tools made this possible.
+---
 
 ## Version history
 
-- **v6.0** — *Geofenced location.* Replaced nearest-city guessing with real
-  point-in-polygon zone detection; added first-run location prompt, remembered zone,
-  coastal sea-buffer, and out-of-bounds handling. Reproducible boundary build added.
-- **v5.x** — *Sharing.* Copy-as-text, native share, and generated day/month image cards.
-- **v4.x** — *2026 redesign.* New theme, mobile layout, and UX refinements.
-- **v3** — *Data-driven rebuild.* Zone + monthly JSON structure.
-- **v0.1–v0.2** — Initial release.
+| Version | What changed |
+|---------|-------------|
+| **v6.0** | *Geofenced location.* Replaced nearest-city guessing with real point-in-polygon zone detection using ADM2/ADM3 boundaries. Added first-run location prompt, remembered zone (localStorage), coastal sea-buffer snap, out-of-bounds handling. Full reproducible build pipeline in `build/`. |
+| **v5.x** | *Sharing.* Copy-as-text, native share sheet, and generated day/month image cards (Canvas API). |
+| **v4.x** | *2026 redesign.* New dark/gold theme, hero countdown section, mobile-first layout, Hijri date display. |
+| **v3** | *Data-driven rebuild.* Moved from hardcoded HTML tables to zone + monthly JSON structure. Proper district → zone mapping. |
+| **v0.1–v0.2** | Initial release. Static HTML prayer time table. |
+
+---
 
 ## License
 
@@ -176,12 +304,10 @@ You are free to **use, study, share, and build on** this project for **any
 non-commercial purpose**, provided you:
 
 - **give credit**, and
-- license your derivatives under the **same** terms (so they stay free too).
+- license your derivatives under the **same terms** (so they stay free too).
 
-**Commercial / for-profit use is not permitted.** This keeps the project — and
-anything built from it — free for the community, forever. It also means this is
-"source-available / free for non-commercial," not OSI "open source" (that label
-requires permitting commercial use).
+**Commercial / for-profit use is not permitted.** This keeps the project — and anything
+built from it — free for the community, forever.
 
-> Note on data: prayer timetables remain © ACJU, and the boundary data is derived
-> from geoBoundaries (CC BY 4.0). Please honour those sources' terms as well.
+> Note on data: prayer timetables remain © ACJU. Boundary data is derived from
+> geoBoundaries (CC BY 4.0). Please honour those sources' terms as well.
