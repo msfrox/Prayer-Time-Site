@@ -283,10 +283,33 @@ in front of GitHub Pages (Cloudflare DNS → GitHub Pages origin).
 
 ---
 
+## Versioning
+
+The site follows **semver** (`MAJOR.MINOR.PATCH`), displayed in the footer of the live site.
+
+| Change type | Example | When to bump |
+|-------------|---------|--------------|
+| **PATCH** `x.x.↑` | `6.2.0 → 6.2.1` | Bug fix, data update (new year JSON), wording change |
+| **MINOR** `x.↑.0` | `6.2.0 → 6.3.0` | New feature or meaningful UX improvement |
+| **MAJOR** `↑.0.0` | `6.2.0 → 7.0.0` | Full redesign or architectural overhaul |
+
+**How to bump the version when making a change:**
+1. Update `SITE_VERSION` in `assets/js/app.js`
+2. Add a row to the Version history table below
+
+**Service worker cache versioning is fully automatic** — the GitHub Actions deploy
+workflow injects the git commit SHA into `sw.js` on every push. You never need to
+touch `sw.js` manually to bust the cache. The placeholder `__GIT_SHA__` in `sw.js`
+is replaced at deploy time; the file in the repo always shows the placeholder.
+
+---
+
 ## Version history
 
 | Version | What changed |
 |---------|-------------|
+| **v6.2.0** | *PWA.* Added `manifest.json`, service worker (`sw.js`) with cache-first shell + stale-while-revalidate data strategy, offline fallback. Auto-versioned SW via git SHA injection in GitHub Actions. Site semver added to footer. |
+| **v6.1.0** | *Performance.* Self-hosted Plus Jakarta Sans (variable font, eliminates Google Fonts dependency). Replaced GTM (345 KB) with direct GA4 snippet (8 KB, async). Inlined `zones.json`. Monthly table loads in background. README rewritten. |
 | **v6.0** | *Geofenced location.* Replaced nearest-city guessing with real point-in-polygon zone detection using ADM2/ADM3 boundaries. Added first-run location prompt, remembered zone (localStorage), coastal sea-buffer snap, out-of-bounds handling. Full reproducible build pipeline in `build/`. |
 | **v5.x** | *Sharing.* Copy-as-text, native share sheet, and generated day/month image cards (Canvas API). |
 | **v4.x** | *2026 redesign.* New dark/gold theme, hero countdown section, mobile-first layout, Hijri date display. |

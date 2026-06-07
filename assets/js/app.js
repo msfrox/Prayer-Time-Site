@@ -8,6 +8,12 @@
    ============================================================ */
 'use strict';
 
+// ── Version ───────────────────────────────────────────────
+// Semver: bump PATCH for bug fixes / data updates, MINOR for new features,
+// MAJOR for full redesigns. Update README version history when you bump.
+// Shown in the footer so users + reports can identify the build.
+const SITE_VERSION = '6.2.0';
+
 // ── Constants ─────────────────────────────────────────────
 const DATA_BASE = './data';
 
@@ -1018,6 +1024,10 @@ async function init(){
 
   renderHeader();
   S.clockTimer = setInterval(renderHeader, 1000); // 1s interval for live seconds
+
+  // Show version in footer (very subtle — useful for debugging / support)
+  const vEl = document.getElementById('footer-version');
+  if (vEl) vEl.textContent = `v${SITE_VERSION}`;
 
   try{const{zones}=await loadZones();S.zones=zones;populateZones(zones);}catch(e){}
   populateMonths();

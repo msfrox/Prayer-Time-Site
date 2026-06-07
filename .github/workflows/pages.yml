@@ -27,6 +27,14 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Inject build metadata
+        run: |
+          GIT_SHA=$(git rev-parse --short HEAD)
+          echo "Injecting git SHA: $GIT_SHA"
+          # Bust the SW shell cache automatically on every deploy
+          sed -i "s/__GIT_SHA__/$GIT_SHA/g" sw.js
+          echo "sw.js updated: $(grep SHELL_VERSION sw.js | head -1)"
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

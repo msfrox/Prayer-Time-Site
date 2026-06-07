@@ -7,7 +7,9 @@
      GA4    (googletagmanager.com)       → network-only, never cache
    ============================================================ */
 
-const SHELL_VERSION = 'v7';          // bump this when deploying site changes
+// __GIT_SHA__ is replaced automatically by the GitHub Actions deploy workflow.
+// Never edit this manually — it self-updates on every push.
+const SHELL_VERSION = '__GIT_SHA__';
 const SHELL_CACHE   = `shell-${SHELL_VERSION}`;
 const DATA_CACHE    = 'data-v1';     // zone JSON — survives shell updates
 
