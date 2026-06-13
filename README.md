@@ -322,6 +322,7 @@ is replaced at deploy time; the file in the repo always shows the placeholder.
 
 | Version | What changed |
 |---------|-------------|
+| **v7.0.0** | *Design concepts.* Added 5 fully-working design previews (`design-1.html`…`design-5.html`: Daylight, Midnight, Heritage, Dawn, Bold) sharing the live site's `app.js` + data via a token-driven base stylesheet (`assets/css/designs-base.css` + `designN.css`). New `designs.html` selection page with preview cards and a link to the live site; footer link on the live site invites users to preview and vote. |
 | **v6.3.0** | *Bug fix + docs.* Fixed day-of-week in monthly table using `data.year` (2026) instead of current real year — days would have been one off in 2027+. Documented solar-based data permanence: JSON files valid for all years, no yearly refresh needed. |
 | **v6.2.0** | *PWA.* Added `manifest.json`, service worker (`sw.js`) with cache-first shell + stale-while-revalidate data strategy, offline fallback. Auto-versioned SW via git SHA injection in GitHub Actions. Site semver added to footer. |
 | **v6.1.0** | *Performance.* Self-hosted Plus Jakarta Sans (variable font, eliminates Google Fonts dependency). Replaced GTM (345 KB) with direct GA4 snippet (8 KB, async). Inlined `zones.json`. Monthly table loads in background. README rewritten. |

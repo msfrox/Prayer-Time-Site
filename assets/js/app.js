@@ -13,7 +13,7 @@
 // MINOR for improvements / bug fixes, MAJOR for new features or redesigns.
 // Update README version history when you bump.
 // Shown in the footer so users + reports can identify the build.
-const SITE_VERSION = '6.3.0';
+const SITE_VERSION = '7.0.0';
 
 // ── Constants ─────────────────────────────────────────────
 const DATA_BASE = './data';

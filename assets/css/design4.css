@@ -1,0 +1,92 @@
+/* ============================================================
+   Design 4 — "Dawn" · Glassmorphism over a living sky gradient
+   Indigo → rose → amber animated sky, frosted glass cards,
+   soft large radii, white-on-sky hero.
+   ============================================================ */
+
+:root {
+  --d-bg:        #4A3A78;
+  --d-surface:   rgba(255,255,255,.66);
+  --d-surface-2: rgba(255,255,255,.45);
+  --d-ink:       #241F3A;
+  --d-muted:     #5B5474;
+  --d-faint:     #8C86A3;
+  --d-accent:    #E2566B;   /* dawn rose */
+  --d-accent-2:  #5B4FB8;   /* indigo */
+  --d-on-accent: #FFFFFF;
+  --d-border:    rgba(255,255,255,.55);
+
+  --d-r-sm: 12px;
+  --d-r-md: 20px;
+  --d-r-lg: 26px;
+
+  --d-shadow-1: 0 4px 18px rgba(36,21,72,.16);
+  --d-shadow-2: 0 18px 50px rgba(36,21,72,.30);
+
+  --d-header-bg:     rgba(40,28,84,.45);
+  --d-header-ink:    #FFFFFF;
+  --d-header-border: rgba(255,255,255,.18);
+
+  --d-hero-bg:    transparent;
+  --d-hero-ink:   #FFFFFF;
+  --d-hero-muted: rgba(255,255,255,.72);
+}
+
+/* The living sky */
+html { background-color: #2E2260; }
+body {
+  background:
+    linear-gradient(175deg,
+      #2E2260 0%, #4A3A78 28%, #8B5099 52%, #D96A7B 74%, #F2A65A 100%);
+  background-attachment: fixed;
+}
+
+.design-banner { background: rgba(36,21,72,.85); color: #fff; }
+
+/* Frosted everything */
+.prayer-featured, .prayer-list-panel, .imsak-strip, .monthly-card,
+.apt-card, .attribution-card, .foot-note, .share-modal, .locate-prompt {
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.hero-inner { padding: 42px 20px 80px; }
+.hero-location-badge { background: rgba(255,255,255,.22); color: #fff; border: 1px solid rgba(255,255,255,.4); }
+.hero-next-label { color: #FFD9A8; }
+.hero-next-name { text-shadow: 0 2px 24px rgba(36,21,72,.45); }
+.hero-timer {
+  color: #FFFFFF;
+  text-shadow: 0 2px 28px rgba(36,21,72,.55);
+}
+.hero-timer-label { color: rgba(255,255,255,.72); }
+
+.btn-locate { background: rgba(255,255,255,.92); color: #4A3A78; border: none; }
+
+.prayer-featured {
+  background: rgba(255,255,255,.30);
+  border: 1px solid rgba(255,255,255,.55);
+  color: #fff;
+}
+.prayer-featured .featured-sub { color: rgba(255,255,255,.75); }
+.featured-time { color: #FFD9A8; }
+.featured-now-badge { background: #FFD9A8; color: #4A3A78; }
+
+.prayer-list-panel { border: 1px solid rgba(255,255,255,.55); }
+.prayer-row { border-bottom-color: rgba(255,255,255,.4); }
+.prayer-row.is-current { background: rgba(255,255,255,.42); }
+.prayer-row.is-current .pr-time { color: #C13B52; }
+.pr-badge-now  { background: #E2566B; }
+.pr-badge-next { background: #5B4FB8; }
+
+.section-title { color: #FFFFFF; text-shadow: 0 1px 12px rgba(36,21,72,.4); }
+.btn-share { background: rgba(255,255,255,.66); border-color: rgba(255,255,255,.55); }
+
+.monthly-table th { background: rgba(255,255,255,.35); }
+.monthly-table tr.today-monthly td { background: rgba(226,86,107,.16); }
+.monthly-table tr.is-friday td { color: #5B4FB8; }
+
+.foot-note { color: #fff; background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.4); }
+
+.site-footer { background: rgba(36,21,72,.55); color: rgba(255,255,255,.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.site-footer a { color: #FFD9A8; }
+.toast { background: rgba(36,21,72,.92); color: #fff; }

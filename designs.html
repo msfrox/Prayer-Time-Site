@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VG92HJCJR7"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VG92HJCJR7');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Design Concepts — Sri Lanka Prayer Times</title>
+  <meta name="description" content="Preview 5 new design concepts for the Sri Lanka Prayer Times site and tell us which one you like." />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#141414" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>" />
+  <style>
+    @font-face {
+      font-family: 'Plus Jakarta Sans';
+      font-style: normal;
+      font-weight: 400 800;
+      font-display: swap;
+      src: url('assets/fonts/plus-jakarta-sans.woff2') format('woff2');
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: #141414; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background: #141414;
+      color: #F2F0EA;
+      min-height: 100vh;
+      padding: calc(28px + env(safe-area-inset-top)) 18px calc(34px + env(safe-area-inset-bottom));
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; }
+    .kicker { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #CFA344; }
+    h1 { font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; margin-top: 8px; }
+    .lead { font-size: 14px; color: #A8A6A0; margin-top: 10px; line-height: 1.6; }
+    .lead a { color: #CFA344; }
+
+    .grid { display: grid; gap: 16px; margin-top: 28px; }
+
+    .card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.10);
+      background: #1C1C1C;
+      transition: transform .15s ease, border-color .15s ease;
+    }
+    .card:active { transform: scale(.985); }
+    .card:hover { border-color: rgba(207,163,68,.5); }
+
+    /* Mini preview: tiny fake-site mock per theme */
+    .prev { height: 132px; position: relative; padding: 14px 16px; overflow: hidden; }
+    .prev .bar  { height: 9px; border-radius: 5px; width: 46%; }
+    .prev .bar2 { height: 7px; border-radius: 4px; width: 30%; margin-top: 7px; opacity: .65; }
+    .prev .chip {
+      position: absolute; right: 16px; top: 14px;
+      font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 99px;
+    }
+    .prev .num  {
+      position: absolute; left: 16px; bottom: 14px;
+      font-size: 30px; font-weight: 800; letter-spacing: -.01em;
+      font-variant-numeric: tabular-nums;
+    }
+    .prev .rows { position: absolute; right: 16px; bottom: 14px; width: 34%; display: grid; gap: 5px; }
+    .prev .rows i { display: block; height: 7px; border-radius: 4px; }
+
+    /* 1 Daylight */
+    .p1 { background: #FBFAF7; }
+    .p1 .bar, .p1 .bar2 { background: #181613; }
+    .p1 .chip { background: transparent; color: #C2552B; border: 1px solid #C2552B; }
+    .p1 .num { color: #C2552B; font-weight: 400; }
+    .p1 .rows i { background: rgba(24,22,19,.14); }
+    /* 2 Midnight */
+    .p2 { background: #000; }
+    .p2::before { content:''; position:absolute; inset:-40% -10% auto; height:150%;
+      background: radial-gradient(40% 60% at 25% 40%, rgba(34,211,238,.30), transparent 70%),
+                  radial-gradient(45% 60% at 75% 35%, rgba(167,139,250,.28), transparent 70%); }
+    .p2 .bar, .p2 .bar2 { background: rgba(255,255,255,.85); position: relative; }
+    .p2 .chip { background: linear-gradient(90deg,#22D3EE,#A78BFA); color: #06121A; }
+    .p2 .num { color: #fff; text-shadow: 0 0 16px rgba(34,211,238,.7); }
+    .p2 .rows i { background: rgba(255,255,255,.18); }
+    /* 3 Heritage */
+    .p3 { background: #0A352A;
+      background-image: radial-gradient(rgba(201,162,39,.16) 1px, transparent 1.5px);
+      background-size: 16px 16px; }
+    .p3 .bar, .p3 .bar2 { background: #F6EFD8; }
+    .p3 .chip { background: #C9A227; color: #1E1A06; }
+    .p3 .num { color: #C9A227; font-family: Georgia, serif; }
+    .p3 .rows i { background: rgba(251,246,233,.85); border-radius: 6px 6px 2px 2px; }
+    .p3 .rows i:first-child { border-radius: 99px 99px 2px 2px; height: 12px; }
+    /* 4 Dawn */
+    .p4 { background: linear-gradient(170deg,#2E2260 0%,#8B5099 55%,#F2A65A 100%); }
+    .p4 .bar, .p4 .bar2 { background: rgba(255,255,255,.9); }
+    .p4 .chip { background: rgba(255,255,255,.25); color: #fff; border: 1px solid rgba(255,255,255,.5); }
+    .p4 .num { color: #fff; text-shadow: 0 2px 14px rgba(36,21,72,.6); }
+    .p4 .rows i { background: rgba(255,255,255,.45); backdrop-filter: blur(4px); }
+    /* 5 Bold */
+    .p5 { background: #4D7CFE; }
+    .p5 .bar, .p5 .bar2 { background: #fff; }
+    .p5 .chip { background: #FFD43B; color: #111; border: 2px solid #111; border-radius: 6px; }
+    .p5 .num { color: #FFD43B; background: #111; padding: 1px 10px; border-radius: 8px; }
+    .p5 .rows i { background: #FFFCF2; border: 2px solid #111; height: 10px; box-shadow: 2px 2px 0 #111; }
+
+    .meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 16px; }
+    .meta .name { font-size: 15px; font-weight: 800; }
+    .meta .desc { font-size: 11.5px; color: #A8A6A0; margin-top: 2px; }
+    .meta .go { font-size: 13px; font-weight: 800; color: #CFA344; white-space: nowrap; }
+
+    .live {
+      display: block;
+      margin-top: 30px;
+      text-align: center;
+      text-decoration: none;
+      background: linear-gradient(90deg, #B8892A, #CFA344);
+      color: #1A1208;
+      font-weight: 800;
+      font-size: 15px;
+      padding: 15px 18px;
+      border-radius: 14px;
+    }
+    .live small { display: block; font-size: 11px; font-weight: 600; opacity: .75; margin-top: 2px; }
+    .foot { text-align: center; font-size: 11.5px; color: #79766E; margin-top: 22px; line-height: 1.7; }
+    .foot a { color: #CFA344; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">🕌 pray.gear.lk</div>
+  <h1>Pick your favourite design</h1>
+  <p class="lead">Five new design concepts for the prayer times site. Each one is fully working —
+  live countdown, your district, monthly timetable, sharing — only the look changes.
+  Tap one to try it, then tell us which you prefer via
+  <a href="https://wa.me/94775569953">WhatsApp</a> or <a href="mailto:pray@gear.lk">email</a>.</p>
+
+  <div class="grid">
+
+    <a class="card" href="design-1.html">
+      <div class="prev p1">
+        <div class="bar"></div><div class="bar2"></div>
+        <span class="chip">Daylight</span>
+        <div class="num">04:32</div>
+        <div class="rows"><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="meta">
+        <div>
+          <div class="name">1 · Daylight</div>
+          <div class="desc">Clean &amp; minimal — warm white, terracotta, airy editorial type</div>
+        </div>
+        <span class="go">Try it →</span>
+      </div>
+    </a>
+
+    <a class="card" href="design-2.html">
+      <div class="prev p2">
+        <div class="bar"></div><div class="bar2"></div>
+        <span class="chip">Midnight</span>
+        <div class="num">04:32</div>
+        <div class="rows"><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="meta">
+        <div>
+          <div class="name">2 · Midnight</div>
+          <div class="desc">Pure-black OLED dark mode with neon cyan &amp; violet glow</div>
+        </div>
+        <span class="go">Try it →</span>
+      </div>
+    </a>
+
+    <a class="card" href="design-3.html">
+      <div class="prev p3">
+        <div class="bar"></div><div class="bar2"></div>
+        <span class="chip">Heritage</span>
+        <div class="num">04:32</div>
+        <div class="rows"><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="meta">
+        <div>
+          <div class="name">3 · Heritage</div>
+          <div class="desc">Classic emerald &amp; gold — mihrab arches, serif elegance</div>
+        </div>
+        <span class="go">Try it →</span>
+      </div>
+    </a>
+
+    <a class="card" href="design-4.html">
+      <div class="prev p4">
+        <div class="bar"></div><div class="bar2"></div>
+        <span class="chip">Dawn</span>
+        <div class="num">04:32</div>
+        <div class="rows"><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="meta">
+        <div>
+          <div class="name">4 · Dawn</div>
+          <div class="desc">Sunrise-sky gradient with soft frosted-glass cards</div>
+        </div>
+        <span class="go">Try it →</span>
+      </div>
+    </a>
+
+    <a class="card" href="design-5.html">
+      <div class="prev p5">
+        <div class="bar"></div><div class="bar2"></div>
+        <span class="chip">Bold</span>
+        <div class="num">04:32</div>
+        <div class="rows"><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="meta">
+        <div>
+          <div class="name">5 · Bold</div>
+          <div class="desc">Punchy neo-brutalist — thick borders, taxi yellow, hard shadows</div>
+        </div>
+        <span class="go">Try it →</span>
+      </div>
+    </a>
+
+  </div>
+
+  <a class="live" href="./">
+    🕌 Open the current live site
+    <small>pray.gear.lk — the design in use today</small>
+  </a>
+
+  <p class="foot">
+    These pages are previews only — the live site is unchanged.<br>
+    Feedback: <a href="mailto:pray@gear.lk">pray@gear.lk</a> ·
+    <a href="https://wa.me/94775569953">WhatsApp 077 556 9953</a>
+  </p>
+</div>
+</body>
+</html>

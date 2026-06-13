@@ -1,0 +1,124 @@
+/* ============================================================
+   Design 5 — "Bold" · Neo-brutalist
+   Paper background, thick black borders, hard offset shadows,
+   chunky uppercase type, yellow + blue accent chips.
+   ============================================================ */
+
+:root {
+  --d-bg:        #FFFCF2;
+  --d-surface:   #FFFFFF;
+  --d-surface-2: #FFF6D6;
+  --d-ink:       #111111;
+  --d-muted:     #444444;
+  --d-faint:     #8A8A8A;
+  --d-accent:    #FFD43B;   /* taxi yellow */
+  --d-accent-2:  #4D7CFE;   /* electric blue */
+  --d-on-accent: #111111;
+  --d-border:    #111111;
+
+  --d-r-sm: 8px;
+  --d-r-md: 12px;
+  --d-r-lg: 14px;
+
+  --d-shadow-1: 4px 4px 0 #111111;
+  --d-shadow-2: 7px 7px 0 #111111;
+
+  --d-header-bg:     #FFFCF2;
+  --d-header-ink:    #111111;
+  --d-header-border: #111111;
+
+  --d-hero-bg:    #4D7CFE;
+  --d-hero-ink:   #FFFFFF;
+  --d-hero-muted: rgba(255,255,255,.85);
+
+  --d-card-border: 3px solid #111111;
+}
+
+.design-banner { background: #111; color: #FFD43B; }
+
+.site-header {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom: 3px solid #111;
+}
+.header-top { border-bottom: 2px dashed rgba(17,17,17,.25); }
+.selectors-bar select {
+  background: #fff;
+  color: #111;
+  border: 2px solid #111;
+  border-radius: var(--d-r-sm);
+  box-shadow: 3px 3px 0 #111;
+  font-weight: 800;
+}
+.btn-locate {
+  background: #FFD43B;
+  color: #111;
+  border: 2px solid #111;
+  box-shadow: 3px 3px 0 #111;
+  font-weight: 800;
+  text-transform: uppercase;
+  transition: transform .1s, box-shadow .1s;
+}
+.btn-locate:active { transform: translate(3px,3px); box-shadow: 0 0 0 #111; }
+
+.hero-section { border-bottom: 3px solid #111; }
+.hero-inner { padding: 34px 20px 70px; }
+.hero-location-badge { background: #FFD43B; color: #111; border: 2px solid #111; border-radius: 6px; }
+.hero-next-label { color: #FFD43B; }
+.hero-next-name { text-transform: uppercase; letter-spacing: -.01em; }
+.hero-timer {
+  background: #111;
+  color: #FFD43B;
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 10px;
+  border: 3px solid #FFD43B;
+}
+
+/* Chunky cards with hard offsets */
+.prayer-featured, .prayer-list-panel, .imsak-strip, .monthly-card,
+.apt-card, .attribution-card, .share-modal, .locate-prompt {
+  border: 3px solid #111;
+}
+.prayer-featured { background: #FFD43B; box-shadow: var(--d-shadow-2); }
+.featured-name { text-transform: uppercase; }
+.featured-time { color: #111; }
+.featured-now-badge { background: #111; color: #FFD43B; border-radius: 6px; }
+.featured-sub { color: #444; }
+
+.prayer-row { border-bottom: 2px solid rgba(17,17,17,.15); }
+.prayer-row.is-current { background: #FFF1B8; box-shadow: inset 5px 0 0 #111; }
+.prayer-row.is-current .pr-time { color: #111; }
+.pr-badge { border: 2px solid #111; border-radius: 6px; }
+.pr-badge-now  { background: #FFD43B; color: #111; }
+.pr-badge-next { background: #4D7CFE; color: #fff; }
+
+.section-title { text-transform: uppercase; letter-spacing: .01em; }
+.btn-share {
+  border: 2px solid #111;
+  box-shadow: 3px 3px 0 #111;
+  font-weight: 800;
+  text-transform: uppercase;
+  transition: transform .1s, box-shadow .1s;
+}
+.btn-share:active { transform: translate(3px,3px); box-shadow: 0 0 0 #111; }
+
+.monthly-table th { background: #FFF6D6; color: #111; border-bottom: 2px solid #111; }
+.monthly-table tr.today-monthly td { background: #FFD43B; }
+.monthly-table tr.is-friday td { color: #4D7CFE; }
+.today-chip { background: #111; color: #FFD43B; border-radius: 6px; }
+
+.foot-note { border: 2px dashed #111; background: #FFF6D6; color: #111; }
+
+.diff-neg { color: #D6336C; }
+.diff-pos { color: #2B8A3E; }
+
+.attr-links a { color: #4D7CFE; }
+
+.site-footer { background: #111; color: #FFFCF2; }
+.site-footer a { color: #FFD43B; }
+
+.share-actions button { border: 2px solid #111; font-weight: 800; }
+.btn-share-native { background: #FFD43B !important; color: #111 !important; border-color: #111 !important; }
+.toast { background: #111; color: #FFD43B; border-radius: 10px; border: 2px solid #FFD43B; }
+.spinner { border-color: rgba(17,17,17,.15); border-top-color: #111; }

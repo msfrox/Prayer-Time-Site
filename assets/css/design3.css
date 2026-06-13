@@ -1,0 +1,93 @@
+/* ============================================================
+   Design 3 — "Heritage" · Emerald & gold, classic Islamic
+   Deep emerald page with a subtle geometric lattice, cream
+   cards, gold accents, serif display type, arched featured card.
+   ============================================================ */
+
+:root {
+  --d-font:    'Plus Jakarta Sans', system-ui, sans-serif;
+  --d-display: Georgia, 'Times New Roman', serif;
+
+  --d-bg:        #0A352A;
+  --d-surface:   #FBF6E9;   /* cream */
+  --d-surface-2: #F3ECD9;
+  --d-ink:       #23231C;
+  --d-muted:     #6E6A55;
+  --d-faint:     #A39E85;
+  --d-accent:    #C9A227;   /* gold */
+  --d-accent-2:  #0E6B4F;   /* emerald */
+  --d-on-accent: #1E1A06;
+  --d-border:    rgba(35,35,28,.14);
+
+  --d-r-sm: 6px;
+  --d-r-md: 12px;
+  --d-r-lg: 16px;
+
+  --d-shadow-1: 0 2px 10px rgba(0,0,0,.22);
+  --d-shadow-2: 0 14px 44px rgba(0,0,0,.35);
+
+  --d-header-bg:     rgba(7,40,31,.92);
+  --d-header-ink:    #F6EFD8;
+  --d-header-border: rgba(201,162,39,.25);
+
+  --d-hero-bg:    #0A352A;
+  --d-hero-ink:   #F6EFD8;
+  --d-hero-muted: rgba(246,239,216,.62);
+}
+
+/* Subtle eight-point-star lattice over the emerald background */
+body {
+  background-image:
+    radial-gradient(rgba(201,162,39,.10) 1px, transparent 1.5px),
+    radial-gradient(rgba(201,162,39,.06) 1px, transparent 1.5px);
+  background-size: 28px 28px, 28px 28px;
+  background-position: 0 0, 14px 14px;
+}
+
+.design-banner { background: #C9A227; color: #1E1A06; }
+
+/* Gold rules and serif headings */
+.logo-title { font-family: var(--d-display); letter-spacing: 0; }
+.hero-inner { padding: 38px 20px 78px; }
+.hero-location-name { font-family: var(--d-display); font-style: italic; }
+.hero-location-badge { background: #C9A227; color: #1E1A06; }
+.hero-next-label { color: #C9A227; }
+.hero-next-name { font-family: var(--d-display); font-weight: 700; letter-spacing: 0; }
+.hero-timer { color: #C9A227; font-family: var(--d-display); font-weight: 700; }
+.hero-section { border-bottom: 3px double rgba(201,162,39,.55); }
+
+.btn-locate { background: #C9A227; color: #1E1A06; border: none; }
+
+/* Arched featured card — mihrab silhouette */
+.prayer-featured {
+  border-radius: 130px 130px var(--d-r-lg) var(--d-r-lg);
+  border: 2px solid #C9A227;
+  padding-top: 36px;
+  background:
+    linear-gradient(180deg, rgba(201,162,39,.10), transparent 45%),
+    var(--d-surface);
+}
+.featured-name { font-family: var(--d-display); }
+.featured-time { color: #0E6B4F; }
+.featured-now-badge { background: #0E6B4F; color: #FBF6E9; }
+
+.prayer-row.is-current { background: rgba(201,162,39,.16); box-shadow: inset 3px 0 0 #C9A227; }
+.pr-badge-now  { background: #C9A227; color: #1E1A06; }
+.pr-badge-next { background: #0E6B4F; color: #FBF6E9; }
+
+.section-title { font-family: var(--d-display); color: #F6EFD8; }
+.section-hd .btn-share { background: rgba(251,246,233,.12); color: #F6EFD8; border-color: rgba(201,162,39,.4); }
+
+.foot-note { background: rgba(251,246,233,.10); border-color: rgba(201,162,39,.4); color: rgba(246,239,216,.78); }
+
+.monthly-card, .apt-card { border: 1px solid rgba(201,162,39,.45); }
+.monthly-table tr.today-monthly td { background: rgba(201,162,39,.18); }
+.monthly-table tr.is-friday td { color: #0E6B4F; }
+.today-chip { background: #0E6B4F; color: #FBF6E9; }
+
+.attribution-card { border: 1px solid rgba(201,162,39,.45); }
+.attr-body h3 { font-family: var(--d-display); }
+
+.site-footer { background: #07281F; color: rgba(246,239,216,.6); border-top: 3px double rgba(201,162,39,.55); }
+.site-footer a { color: #C9A227; }
+.toast { background: #FBF6E9; color: #23231C; }

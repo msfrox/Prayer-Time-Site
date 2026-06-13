@@ -1,0 +1,99 @@
+/* ============================================================
+   Design 2 — "Midnight" · OLED dark, neon glow
+   Pure black, cyan→violet gradients, glowing countdown,
+   soft glass cards. Battery-friendly on OLED phones.
+   ============================================================ */
+
+:root {
+  --d-bg:        #000000;
+  --d-surface:   #0C0C12;
+  --d-surface-2: #14141D;
+  --d-ink:       #EDEDF4;
+  --d-muted:     #9B9BAE;
+  --d-faint:     #5E5E72;
+  --d-accent:    #22D3EE;   /* neon cyan */
+  --d-accent-2:  #A78BFA;   /* violet */
+  --d-on-accent: #06121A;
+  --d-border:    rgba(255,255,255,.09);
+
+  --d-r-sm: 10px;
+  --d-r-md: 16px;
+  --d-r-lg: 22px;
+
+  --d-shadow-1: 0 0 0 1px rgba(255,255,255,.03);
+  --d-shadow-2: 0 12px 44px rgba(34,211,238,.10);
+
+  --d-header-bg:     rgba(0,0,0,.78);
+  --d-header-ink:    #EDEDF4;
+  --d-header-border: rgba(255,255,255,.08);
+
+  --d-hero-bg:    #000000;
+  --d-hero-ink:   #FFFFFF;
+  --d-hero-muted: #8C8CA0;
+}
+
+.design-banner {
+  background: linear-gradient(90deg, #22D3EE, #A78BFA);
+  color: #06121A;
+}
+
+/* Neon aurora behind the hero */
+.hero-section::before {
+  content: '';
+  position: absolute;
+  inset: -40% -20% auto;
+  height: 130%;
+  background:
+    radial-gradient(38% 55% at 22% 38%, rgba(34,211,238,.22), transparent 70%),
+    radial-gradient(42% 60% at 78% 30%, rgba(167,139,250,.20), transparent 70%),
+    radial-gradient(30% 45% at 55% 75%, rgba(59,130,246,.12), transparent 70%);
+  pointer-events: none;
+}
+.hero-inner { padding: 36px 20px 72px; }
+.hero-location-badge {
+  background: linear-gradient(90deg, #22D3EE, #A78BFA);
+  color: #06121A;
+}
+.hero-next-name {
+  background: linear-gradient(90deg, #22D3EE, #A78BFA);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.hero-timer {
+  color: #FFFFFF;
+  text-shadow: 0 0 22px rgba(34,211,238,.55), 0 0 60px rgba(167,139,250,.35);
+}
+
+.btn-locate {
+  background: linear-gradient(90deg, #22D3EE, #A78BFA);
+  color: #06121A;
+  border: none;
+}
+
+/* Glassy cards */
+.prayer-featured {
+  background: linear-gradient(160deg, rgba(34,211,238,.13), rgba(167,139,250,.10)), var(--d-surface);
+  border: 1px solid rgba(34,211,238,.25);
+}
+.featured-time { color: #22D3EE; text-shadow: 0 0 18px rgba(34,211,238,.45); }
+.featured-now-badge { background: linear-gradient(90deg, #22D3EE, #A78BFA); color: #06121A; }
+
+.prayer-row.is-current {
+  background: linear-gradient(90deg, rgba(34,211,238,.13), rgba(167,139,250,.08));
+  box-shadow: inset 3px 0 0 #22D3EE;
+}
+.pr-badge-now  { background: #22D3EE; color: #06121A; }
+.pr-badge-next { background: #A78BFA; color: #1A1030; }
+
+.monthly-table tr.today-monthly td { background: rgba(34,211,238,.10); }
+.monthly-table tr.is-friday td { color: #A78BFA; }
+.today-chip { background: #22D3EE; color: #06121A; }
+
+.diff-neg { color: #FB7185; }
+.diff-pos { color: #34D399; }
+
+.attr-links a { color: #22D3EE; }
+.site-footer { color: #6E6E82; }
+.site-footer a { color: #22D3EE; }
+.toast { background: #1C1C28; color: #EDEDF4; border: 1px solid rgba(255,255,255,.1); }

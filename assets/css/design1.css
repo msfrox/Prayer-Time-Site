@@ -1,0 +1,76 @@
+/* ============================================================
+   Design 1 — "Daylight" · Minimal light editorial
+   Warm white, near-black ink, terracotta accent, hairlines,
+   huge airy type, zero heaviness.
+   ============================================================ */
+
+:root {
+  --d-bg:        #FBFAF7;
+  --d-surface:   #FFFFFF;
+  --d-surface-2: #F5F3EE;
+  --d-ink:       #181613;
+  --d-muted:     #6E6A62;
+  --d-faint:     #A8A49B;
+  --d-accent:    #C2552B;   /* terracotta */
+  --d-accent-2:  #1F5F4E;   /* deep green */
+  --d-on-accent: #FFFFFF;
+  --d-border:    rgba(24,22,19,.12);
+
+  --d-r-sm: 6px;
+  --d-r-md: 10px;
+  --d-r-lg: 14px;
+
+  --d-shadow-1: none;
+  --d-shadow-2: 0 10px 36px rgba(24,22,19,.10);
+
+  --d-header-bg:     rgba(251,250,247,.88);
+  --d-header-ink:    #181613;
+  --d-header-border: rgba(24,22,19,.10);
+
+  --d-hero-bg:    #FBFAF7;
+  --d-hero-ink:   #181613;
+  --d-hero-muted: #6E6A62;
+}
+
+/* Light header: selectors get light styling */
+.selectors-bar select {
+  background: #FFFFFF;
+  color: var(--d-ink);
+  border-color: var(--d-border);
+}
+.design-banner { background: var(--d-ink); color: #FBFAF7; }
+
+/* Editorial hero: oversized serif-feel numerals, hairline frame */
+.hero-section { border-bottom: 1px solid var(--d-border); }
+.hero-inner { padding: 44px 20px 76px; }
+.hero-location-badge { background: transparent; color: var(--d-accent); border: 1px solid currentColor; }
+.hero-next-name { font-size: 56px; font-weight: 800; letter-spacing: -.035em; }
+.hero-timer { font-size: 56px; font-weight: 400; letter-spacing: -.02em; color: var(--d-accent); }
+.hero-next-label { color: var(--d-accent); }
+
+/* Cards become flat, framed */
+.prayer-featured,
+.prayer-list-panel,
+.imsak-strip,
+.monthly-card,
+.apt-card,
+.attribution-card { border: 1px solid var(--d-border); }
+.prayer-featured { background: var(--d-ink); color: #FBFAF7; border: none; }
+.prayer-featured .featured-sub { color: rgba(251,250,247,.6); }
+.prayer-featured .featured-time { color: #F0B596; }
+
+.prayer-row { padding: 13px 18px; }
+.pr-name { font-weight: 600; }
+
+.section-title { font-weight: 800; letter-spacing: -.02em; }
+.btn-share { border-radius: 99px; }
+.btn-locate { border-radius: 99px; }
+
+.site-footer { background: var(--d-ink); color: rgba(251,250,247,.65); }
+.site-footer a { color: #F0B596; }
+.toast { background: var(--d-ink); color: #FBFAF7; }
+
+@media (max-width: 640px) {
+  .hero-next-name { font-size: 40px; }
+  .hero-timer { font-size: 44px; }
+}
