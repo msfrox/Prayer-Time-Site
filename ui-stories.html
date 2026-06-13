@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stories · Sri Lanka Prayer Times</title>
+<meta name="description" content="Experimental UI — swipe through the week, one day per card (ACJU)." />
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#120E1C" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>" />
+<style>
+  @font-face{font-family:'Plus Jakarta Sans';font-weight:400 800;font-display:swap;src:url('assets/fonts/plus-jakarta-sans.woff2') format('woff2');}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#120E1C; --ink:#F3EEFB; --muted:#A99FC4; --faint:#6E6488; --line:rgba(255,255,255,.12);
+    --p1:#7C5CFF; --p2:#FF6FB5; --gold:#FFD36E;
+    --font:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+  }
+  html{background:var(--bg);-webkit-tap-highlight-color:transparent;}
+  body{font-family:var(--font);color:var(--ink);min-height:100vh;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased;
+    background:radial-gradient(90% 60% at 20% 0%, #2A1B53 0%, transparent 55%),radial-gradient(90% 60% at 90% 100%, #4A1742 0%, transparent 55%),var(--bg);
+    display:flex;flex-direction:column;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 18px 10px;font-size:12px;font-weight:700;flex:0 0 auto;}
+  .topbar a{color:var(--muted);text-decoration:none;} .topbar a:hover{color:var(--ink);}
+  .topbar .t-title{color:var(--gold);letter-spacing:.04em;}
+  .zonebar{display:flex;gap:9px;align-items:center;padding:0 18px 8px;flex:0 0 auto;}
+  select,.btn{font-family:inherit;border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--ink);padding:9px 12px;font-size:13px;font-weight:700;cursor:pointer;}
+  select{flex:1;min-width:0;} select option{background:#1B1430;}
+
+  /* day-of-week strip */
+  .week{display:flex;gap:7px;padding:2px 18px 10px;overflow-x:auto;flex:0 0 auto;scrollbar-width:none;}
+  .week::-webkit-scrollbar{display:none;}
+  .pill{flex:0 0 auto;min-width:48px;text-align:center;padding:8px 6px;border-radius:13px;border:1px solid var(--line);background:rgba(255,255,255,.04);cursor:pointer;transition:.2s;}
+  .pill .d{font-size:10px;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.04em;}
+  .pill .n{font-size:17px;font-weight:800;margin-top:1px;}
+  .pill.active{background:linear-gradient(135deg,var(--p1),var(--p2));border-color:transparent;color:#fff;}
+  .pill.active .d{color:rgba(255,255,255,.85);}
+  .pill.today::after{content:'';display:block;width:5px;height:5px;border-radius:99px;background:var(--gold);margin:3px auto 0;}
+
+  /* card viewport */
+  .viewport{flex:1 1 auto;overflow:hidden;position:relative;}
+  .track{display:flex;height:100%;transition:transform .35s cubic-bezier(.22,1,.36,1);will-change:transform;}
+  .slide{flex:0 0 100%;height:100%;padding:4px 18px 18px;overflow-y:auto;}
+  .card{background:linear-gradient(160deg,rgba(124,92,255,.16),rgba(255,111,181,.10)),#1A1430;
+    border:1px solid var(--line);border-radius:26px;padding:20px 18px;min-height:100%;display:flex;flex-direction:column;box-shadow:0 18px 50px rgba(0,0,0,.45);}
+  .c-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .c-day{font-size:22px;font-weight:800;letter-spacing:-.02em;}
+  .c-greg{font-size:12px;color:var(--muted);margin-top:2px;}
+  .c-hijri{font-size:11px;color:var(--faint);}
+  .c-badge{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:4px 10px;border-radius:99px;background:var(--gold);color:#2A1F00;white-space:nowrap;}
+  .c-badge.fri{background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;}
+  .next-mini{margin-top:14px;background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .nm-l{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--gold);}
+  .nm-name{font-size:18px;font-weight:800;}
+  .nm-count{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--gold);}
+  .rows{margin-top:14px;display:flex;flex-direction:column;gap:8px;}
+  .row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid transparent;}
+  .row.now{background:linear-gradient(120deg,rgba(255,211,110,.18),transparent);border-color:rgba(255,211,110,.45);}
+  .row.next{border-color:rgba(124,92,255,.5);}
+  .row.sun{opacity:.7;}
+  .r-ic{font-size:18px;width:24px;text-align:center;}
+  .r-name{font-size:15px;font-weight:700;}
+  .r-tag{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:99px;margin-left:7px;background:var(--gold);color:#2A1F00;}
+  .r-tag.next{background:var(--p1);color:#fff;}
+  .r-time{margin-left:auto;font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;}
+  .r-time .ap{font-size:11px;color:var(--muted);font-weight:600;}
+  .c-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:14px;}
+  .c-extra{font-size:11px;color:var(--muted);}
+  .btn-share2{background:linear-gradient(135deg,var(--p1),var(--p2));border:none;color:#fff;border-radius:12px;padding:9px 14px;font-weight:800;font-size:13px;}
+  .nav-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:10.5px;color:var(--faint);pointer-events:none;}
+  .arrows{display:flex;gap:6px;}
+  .arrow{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--ink);font-size:15px;cursor:pointer;}
+  .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(12px);
+    background:#241A3C;color:#fff;border:1px solid var(--line);font-size:12.5px;font-weight:600;padding:10px 16px;border-radius:99px;z-index:50;opacity:0;pointer-events:none;transition:.25s;max-width:90vw;text-align:center;}
+  .toast.show{opacity:1;transform:translateX(-50%);}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="labs.html">← Labs</a>
+    <span class="t-title">🃏 STORIES</span>
+    <a href="ui-bento.html">Next →</a>
+  </div>
+  <div class="zonebar">
+    <select id="zone-sel" aria-label="District"></select>
+    <button class="btn" id="btn-locate">📍</button>
+    <div class="arrows"><button class="arrow" id="prev">‹</button><button class="arrow" id="next">›</button></div>
+  </div>
+  <div class="week" id="week"></div>
+
+  <div class="viewport" id="viewport">
+    <div class="track" id="track"></div>
+    <div class="nav-hint">← swipe between days →</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script src="assets/js/pt-core.js"></script>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  let zone=PT.getZone(), idx=0, days=[], tickT=null;
+  const ORDER=['fajr','sunrise','luhr','asr','magrib','isha'];
+  function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3500);}
+
+  function fillZones(){const s=$('zone-sel');s.innerHTML='';PT.ZONES.forEach(z=>{const o=document.createElement('option');o.value=z.id;o.textContent=z.districts.join(', ');if(z.id===zone)o.selected=true;s.appendChild(o);});}
+
+  // build 7-day window starting today
+  async function buildDays(){
+    days=[]; const today=new Date(); today.setHours(0,0,0,0);
+    const monthsNeeded={};
+    for(let i=0;i<7;i++){ const d=new Date(today); d.setDate(d.getDate()+i); monthsNeeded[d.getMonth()+1]=true; }
+    const cache={};
+    for(const m of Object.keys(monthsNeeded)){ try{cache[m]=await PT.loadMonth(zone,+m);}catch(e){} }
+    for(let i=0;i<7;i++){
+      const d=new Date(today); d.setDate(d.getDate()+i);
+      const data=cache[d.getMonth()+1]; const row=data?PT.rowForDate(data,d):null;
+      days.push({date:new Date(d), row, data});
+    }
+  }
+
+  function weekStrip(){
+    const w=$('week'); w.innerHTML='';
+    days.forEach((dd,i)=>{
+      const el=document.createElement('div'); el.className='pill'+(i===idx?' active':'')+(i===0?' today':'');
+      el.innerHTML=`<div class="d">${PT.WDAY_S[dd.date.getDay()]}</div><div class="n">${dd.date.getDate()}</div>`;
+      el.addEventListener('click',()=>go(i));
+      w.appendChild(el);
+    });
+  }
+
+  function cardHTML(dd,i){
+    const isToday=i===0; const isFri=dd.date.getDay()===5;
+    const row=dd.row;
+    if(!row) return `<div class="slide"><div class="card"><div class="c-day">No data</div><div class="c-greg">${PT.WDAY_F[dd.date.getDay()]}, ${dd.date.getDate()} ${PT.MON_FULL[dd.date.getMonth()+1]}</div></div></div>`;
+    const nextMini = isToday ? `<div class="next-mini" data-next><div><div class="nm-l">Next prayer</div><div class="nm-name" data-nm-name>—</div></div><div class="nm-count" data-nm-count>--:--:--</div></div>`
+      : `<div class="next-mini"><div><div class="nm-l">Friday</div><div class="nm-name">${isFri?'Jumuʿah day':PT.WDAY_F[dd.date.getDay()]}</div></div><div style="font-size:22px">${isFri?'🕌':'🗓️'}</div></div>`;
+    let rows='';
+    ORDER.forEach(k=>{const {hm,ap}=PT.splitTime(row[k]);
+      rows+=`<div class="row${k==='sunrise'?' sun':''}" data-k="${k}"><span class="r-ic">${PT.P_ICON[k]}</span><span class="r-name">${PT.P_LABEL[k]}<span class="r-tag" data-tag style="display:none"></span></span><span class="r-time">${hm}<span class="ap"> ${ap}</span></span></div>`;});
+    return `<div class="slide"><div class="card" data-i="${i}">
+      <div class="c-head"><div><div class="c-day">${isToday?'Today':PT.WDAY_F[dd.date.getDay()]}</div>
+        <div class="c-greg">${dd.date.getDate()} ${PT.MON_FULL[dd.date.getMonth()+1]} ${dd.date.getFullYear()} · ${dd.data.zoneName}</div>
+        <div class="c-hijri">${PT.hijriFor(dd.date)}</div></div>
+        <div class="c-badge ${isFri?'fri':''}">${isFri?'Jumuʿah':PT.IDAY_F[dd.date.getDay()]}</div></div>
+      ${nextMini}
+      <div class="rows">${rows}</div>
+      <div class="c-foot"><span class="c-extra">Imsak ${PT.minusMins(row.fajr,2)} · Iftar ${row.magrib}</span>
+        <button class="btn-share2" data-share="${i}">↗ Share</button></div>
+    </div></div>`;
+  }
+
+  function render(){
+    $('track').innerHTML=days.map((dd,i)=>cardHTML(dd,i)).join('');
+    $('track').style.transform=`translateX(${-idx*100}%)`;
+    $('track').querySelectorAll('[data-share]').forEach(b=>b.addEventListener('click',()=>shareDay(+b.dataset.share)));
+    weekStrip();
+    renderLive();
+  }
+
+  function go(i){ idx=Math.max(0,Math.min(days.length-1,i)); $('track').style.transform=`translateX(${-idx*100}%)`; weekStrip(); }
+
+  function renderLive(){
+    const dd=days[0]; if(!dd||!dd.row) return;
+    const row=dd.row, st=PT.status(row);
+    // tag rows on today's card
+    const todayCard=$('track').querySelector('.card[data-i="0"]'); if(!todayCard) return;
+    todayCard.querySelectorAll('.row').forEach(r=>{
+      const k=r.dataset.k; r.classList.remove('now','next'); const tag=r.querySelector('[data-tag]'); tag.style.display='none'; tag.className='r-tag';
+      if(k===st.current && k!=='sunrise'){r.classList.add('now');tag.style.display='';tag.textContent='Now';}
+      else if(k===st.next && !st.isNextDay){r.classList.add('next');tag.style.display='';tag.textContent='Next';tag.classList.add('next');}
+    });
+    // next mini countdown
+    const nm=todayCard.querySelector('[data-next]'); if(nm){
+      PT.nextTarget(zone,dd.data,st).then(tgt=>{
+        nm.querySelector('[data-nm-name]').textContent=(st.isNextDay?"Tmrw ":"")+PT.P_LABEL[tgt.key];
+        nm.querySelector('[data-nm-count]').textContent=PT.fmtHMS(PT.msUntil(tgt.row,tgt.key,tgt.isNextDay));
+      });
+    }
+  }
+
+  function shareDay(i){const dd=days[i];if(!dd||!dd.row)return;const text=PT.shareToday(dd.data,dd.row,dd.date.getFullYear());
+    if(navigator.share){try{navigator.share({title:'Sri Lanka Prayer Times',text});}catch{}}else{navigator.clipboard.writeText(text).then(()=>toast('Copied'),()=>toast('Copy failed'));}}
+
+  async function load(){ try{ await buildDays(); idx=0; render();
+      clearInterval(tickT); tickT=setInterval(renderLive,1000);
+    }catch(e){toast('Could not load times.');console.error(e);} }
+
+  // swipe
+  const vp=$('viewport'); let x0=null,dx=0;
+  vp.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;dx=0;},{passive:true});
+  vp.addEventListener('touchmove',e=>{if(x0==null)return;dx=e.touches[0].clientX-x0;$('track').style.transition='none';$('track').style.transform=`translateX(calc(${-idx*100}% + ${dx}px))`;},{passive:true});
+  vp.addEventListener('touchend',()=>{$('track').style.transition='';if(Math.abs(dx)>50)go(idx-Math.sign(dx));else go(idx);x0=null;});
+  $('prev').addEventListener('click',()=>go(idx-1));
+  $('next').addEventListener('click',()=>go(idx+1));
+  document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(idx-1);if(e.key==='ArrowRight')go(idx+1);});
+
+  fillZones();
+  $('zone-sel').addEventListener('change',e=>{zone=e.target.value;PT.setZone(zone);load();});
+  $('btn-locate').addEventListener('click',async()=>{const b=$('btn-locate');b.textContent='⏳';
+    try{const r=await PT.locate();if(r.zone){zone=r.zone;PT.setZone(zone);$('zone-sel').value=zone;await load();toast(`📍 ${PT.districtsLabel(zone)}`);}else toast('Outside Sri Lanka — pick your district.');}
+    catch{toast('Location unavailable — pick your district.');}b.textContent='📍';});
+  load();
+})();
+</script>
+</body>
+</html>

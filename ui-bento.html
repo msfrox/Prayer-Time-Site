@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bento · Sri Lanka Prayer Times</title>
+<meta name="description" content="Experimental UI — a dashboard of prayer widgets: countdown, Qibla compass, month heatmap (ACJU)." />
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#0B0D10" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍱</text></svg>" />
+<style>
+  @font-face{font-family:'Plus Jakarta Sans';font-weight:400 800;font-display:swap;src:url('assets/fonts/plus-jakarta-sans.woff2') format('woff2');}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#0B0D10; --tile:#15181E; --tile2:#1B1F27; --ink:#EDEFF2; --muted:#9098A6; --faint:#5B636F;
+    --line:rgba(255,255,255,.08); --accent:#4F9CF9; --accent2:#34D399; --gold:#F2C14E; --rose:#F2709C;
+    --font:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+  }
+  html{background:var(--bg);-webkit-tap-highlight-color:transparent;}
+  body{font-family:var(--font);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+    background:radial-gradient(80% 40% at 0% 0%, #14202E 0%, transparent 60%),var(--bg);
+    padding:0 0 calc(28px + env(safe-area-inset-bottom));}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 18px 8px;font-size:12px;font-weight:700;}
+  .topbar a{color:var(--muted);text-decoration:none;} .topbar a:hover{color:var(--ink);}
+  .topbar .t-title{color:var(--gold);letter-spacing:.04em;}
+  .wrap{max-width:680px;margin:0 auto;padding:0 14px;}
+  .head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;padding:6px 4px 12px;}
+  .h-zone{font-size:16px;font-weight:800;} .h-date{font-size:12px;color:var(--muted);margin-top:2px;}
+  .controls{display:flex;gap:8px;}
+  select,.btn{font-family:inherit;border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--ink);padding:8px 11px;font-size:12.5px;font-weight:700;cursor:pointer;}
+  select option{background:#15181E;}
+
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .tile{background:var(--tile);border:1px solid var(--line);border-radius:20px;padding:16px;position:relative;overflow:hidden;}
+  .t-cap{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--faint);}
+  .span4{grid-column:span 4;} .span2{grid-column:span 2;} .span3{grid-column:span 3;} .span1{grid-column:span 1;}
+  @media(max-width:560px){ .grid{grid-template-columns:repeat(2,1fr);} .span4{grid-column:span 2;} .span3{grid-column:span 2;} .span2{grid-column:span 2;} .span1{grid-column:span 1;} }
+
+  /* countdown hero tile */
+  .cd{background:linear-gradient(135deg,rgba(79,156,249,.18),rgba(52,211,153,.10)),var(--tile2);}
+  .cd .lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--accent2);}
+  .cd .nm{font-size:30px;font-weight:800;letter-spacing:-.02em;margin-top:2px;}
+  .cd .at{font-size:12.5px;color:var(--muted);}
+  .cd .count{font-size:46px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.01em;margin-top:8px;line-height:1;
+    background:linear-gradient(90deg,var(--gold),#FFE39A);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .cd .seg{height:7px;border-radius:99px;background:rgba(255,255,255,.10);margin-top:14px;overflow:hidden;}
+  .cd .seg i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0;transition:width .5s;}
+
+  /* qibla compass */
+  .compass{display:flex;flex-direction:column;align-items:center;}
+  .cwrap{position:relative;width:118px;height:118px;margin:10px auto 6px;}
+  .cface{position:absolute;inset:0;border-radius:50%;border:2px solid var(--line);background:radial-gradient(circle at 50% 40%,#1F2530,#12151B);}
+  .cN{position:absolute;top:5px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:800;color:var(--muted);}
+  .cdial{position:absolute;inset:0;transition:transform .3s;}
+  .qarrow{position:absolute;top:50%;left:50%;width:4px;height:48px;transform-origin:bottom center;transform:translate(-50%,-100%);
+    background:linear-gradient(180deg,var(--rose),#7a2f4d);border-radius:4px;}
+  .qarrow::before{content:'🕋';position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:15px;}
+  .cdeg{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;}
+  .csub{font-size:10.5px;color:var(--faint);text-align:center;}
+  .ctap{margin-top:6px;font-size:10.5px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;}
+
+  /* hijri / sun tiles */
+  .big{font-size:24px;font-weight:800;letter-spacing:-.01em;margin-top:6px;}
+  .small{font-size:12px;color:var(--muted);margin-top:2px;}
+  .sun-row{display:flex;justify-content:space-between;margin-top:10px;}
+  .sun-row .v{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;}
+  .sun-row .k{font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;}
+
+  /* prayer checklist + ring */
+  .pl-head{display:flex;justify-content:space-between;align-items:center;}
+  .ring{width:54px;height:54px;}
+  .pl{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+  .pl .r{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:12px;background:rgba(255,255,255,.04);}
+  .pl .r.now{background:linear-gradient(120deg,rgba(242,193,78,.16),transparent);box-shadow:inset 3px 0 0 var(--gold);}
+  .pl .r.done .nm{color:var(--muted);} .pl .r.done .tm{color:var(--muted);}
+  .pl .ic{font-size:15px;width:20px;text-align:center;}
+  .pl .nm{font-size:13.5px;font-weight:700;}
+  .pl .tm{margin-left:auto;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
+  .pl .ck{font-size:13px;color:var(--accent2);}
+
+  /* month heatmap */
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px;}
+  .cal .dow{font-size:9px;font-weight:800;color:var(--faint);text-align:center;text-transform:uppercase;}
+  .cal .cell{aspect-ratio:1;border-radius:7px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums;cursor:pointer;border:1px solid transparent;}
+  .cal .cell.fri{background:rgba(79,156,249,.18);color:#cfe0ff;}
+  .cal .cell.today{background:var(--gold);color:#2A2200;font-weight:800;border-color:#fff3;}
+  .cal .cell.empty{background:transparent;cursor:default;}
+  .cal-foot{font-size:10.5px;color:var(--faint);margin-top:9px;}
+
+  .imf{display:flex;gap:10px;}
+  .imf .c{flex:1;text-align:center;}
+  .imf .k{font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;}
+  .imf .v{font-size:18px;font-weight:800;margin-top:3px;font-variant-numeric:tabular-nums;}
+
+  .foot{text-align:center;font-size:11px;color:var(--faint);margin-top:20px;line-height:1.7;}
+  .foot a{color:var(--accent);text-decoration:none;}
+  .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(12px);
+    background:#1A1F28;color:#fff;border:1px solid var(--line);font-size:12.5px;font-weight:600;padding:10px 16px;border-radius:99px;z-index:50;opacity:0;pointer-events:none;transition:.25s;max-width:90vw;text-align:center;}
+  .toast.show{opacity:1;transform:translateX(-50%);}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="labs.html">← Labs</a>
+    <span class="t-title">🍱 BENTO</span>
+    <a href="ui-ambient.html">Next →</a>
+  </div>
+
+  <div class="wrap">
+    <div class="head">
+      <div><div class="h-zone" id="zone-name">Sri Lanka</div><div class="h-date" id="date-line">—</div></div>
+      <div class="controls">
+        <select id="zone-sel" aria-label="District"></select>
+        <button class="btn" id="btn-locate">📍</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Countdown hero -->
+      <div class="tile cd span3">
+        <div class="lbl" id="cd-label">Next prayer</div>
+        <div class="nm" id="cd-name">—</div>
+        <div class="at" id="cd-at">—</div>
+        <div class="count" id="cd-count">--:--:--</div>
+        <div class="seg"><i id="cd-seg"></i></div>
+      </div>
+
+      <!-- Qibla compass -->
+      <div class="tile compass span1">
+        <div class="t-cap">Qibla</div>
+        <div class="cwrap">
+          <div class="cface"></div><div class="cN">N</div>
+          <div class="cdial" id="cdial"><div class="qarrow"></div></div>
+        </div>
+        <div class="cdeg" id="q-deg">—</div>
+        <div class="csub" id="q-sub">from district</div>
+        <button class="ctap" id="q-live">Use live compass</button>
+      </div>
+
+      <!-- Prayer checklist + ring -->
+      <div class="tile span2">
+        <div class="pl-head"><div class="t-cap">Today's prayers</div>
+          <svg class="ring" viewBox="0 0 36 36"><path d="M18 2a16 16 0 1 1 0 32 16 16 0 0 1 0-32" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="3"/>
+          <path id="ring-fill" d="M18 2a16 16 0 1 1 0 32 16 16 0 0 1 0-32" fill="none" stroke="#34D399" stroke-width="3" stroke-linecap="round" stroke-dasharray="100" stroke-dashoffset="100"/>
+          <text id="ring-txt" x="18" y="20" text-anchor="middle" font-size="9" font-weight="800" fill="#EDEFF2">0/5</text></svg>
+        </div>
+        <div class="pl" id="checklist"></div>
+      </div>
+
+      <!-- Hijri -->
+      <div class="tile span1">
+        <div class="t-cap">Hijri</div>
+        <div class="big" id="hijri-d">—</div>
+        <div class="small" id="hijri-y">—</div>
+      </div>
+
+      <!-- Sun -->
+      <div class="tile span1">
+        <div class="t-cap">Sun</div>
+        <div class="sun-row"><div><div class="k">Rise</div><div class="v" id="sunrise">—</div></div><div style="font-size:22px">🌤️</div></div>
+        <div class="sun-row"><div><div class="k">Set</div><div class="v" id="sunset">—</div></div></div>
+      </div>
+
+      <!-- Imsak / Iftar -->
+      <div class="tile span2">
+        <div class="t-cap">Fasting</div>
+        <div class="imf" style="margin-top:10px;">
+          <div class="c"><div class="k">🌙 Imsak · Sahr end</div><div class="v" id="imsak">—</div></div>
+          <div class="c"><div class="k">🌇 Iftar · Maghrib</div><div class="v" id="iftar">—</div></div>
+        </div>
+      </div>
+
+      <!-- Month heatmap -->
+      <div class="tile span4">
+        <div class="t-cap">This month · <span id="cal-month"></span> (Fridays highlighted)</div>
+        <div class="cal" id="cal"></div>
+        <div class="cal-foot">Tap a Friday for Jumuʿah · times are solar-based and repeat each year.</div>
+      </div>
+    </div>
+
+    <p class="foot">
+      A glanceable dashboard. Qibla is computed for your district; tap “Use live compass” on a phone for true heading.<br>
+      Data: <a href="https://www.acju.lk/prayer-times/" target="_blank" rel="noopener">ACJU official</a> · <a href="labs.html">All experiments</a> · <a href="./">Live site</a>
+    </p>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script src="assets/js/pt-core.js"></script>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  let zone=PT.getZone(), data=null, st=null, tgt=null, tickT=null, heading=null;
+  function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3500);}
+  function fillZones(){const s=$('zone-sel');s.innerHTML='';PT.ZONES.forEach(z=>{const o=document.createElement('option');o.value=z.id;o.textContent=z.districts.join(', ');if(z.id===zone)o.selected=true;s.appendChild(o);});}
+
+  function renderStatic(){
+    const now=new Date(), row=PT.todayRow(data);
+    $('zone-name').textContent=PT.districtsLabel(zone);
+    $('date-line').textContent=`${PT.WDAY_F[now.getDay()]}, ${now.getDate()} ${PT.MON_FULL[now.getMonth()+1]} ${now.getFullYear()} · ${PT.zoneById(zone).name}`;
+    $('sunrise').textContent=PT.splitTime(row.sunrise).hm; $('sunset').textContent=PT.splitTime(row.magrib).hm;
+    $('imsak').textContent=PT.minusMins(row.fajr,2); $('iftar').textContent=row.magrib;
+    const h=PT.hijriShort().split(' '); $('hijri-d').textContent=h[0]+' '+(h[1]||''); $('hijri-y').textContent=(h[2]||'')+' '+(h[3]||'');
+
+    // qibla
+    const q=PT.qiblaForZone(zone);
+    $('q-deg').textContent=Math.round(q)+'°';
+    $('q-sub').textContent=PT.zoneById(zone).districts[0];
+    updateCompass();
+
+    // checklist skeleton
+    const cl=$('checklist'); cl.innerHTML='';
+    PT.PRAYERS.forEach(k=>{const {hm,ap}=PT.splitTime(row[k]);
+      const r=document.createElement('div'); r.className='r'; r.dataset.k=k;
+      r.innerHTML=`<span class="ic">${PT.P_ICON[k]}</span><span class="nm">${PT.P_LABEL[k]}</span><span class="tm">${hm}<span style="font-size:10px;color:var(--muted)"> ${ap}</span></span><span class="ck" data-ck></span>`;
+      cl.appendChild(r);});
+
+    // calendar heatmap
+    buildCal();
+  }
+
+  function buildCal(){
+    const now=new Date(), y=now.getFullYear(), m=now.getMonth();
+    $('cal-month').textContent=PT.MON_FULL[m+1];
+    const first=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate();
+    const cal=$('cal'); cal.innerHTML='';
+    PT.WDAY_S.forEach(d=>{const e=document.createElement('div');e.className='dow';e.textContent=d[0];cal.appendChild(e);});
+    for(let i=0;i<first;i++){const e=document.createElement('div');e.className='cell empty';cal.appendChild(e);}
+    for(let d=1;d<=dim;d++){const dow=new Date(y,m,d).getDay();
+      const e=document.createElement('div'); e.className='cell'+(dow===5?' fri':'')+(d===now.getDate()?' today':'');
+      e.textContent=d;
+      if(dow===5) e.addEventListener('click',()=>showFriday(y,m,d));
+      cal.appendChild(e);}
+  }
+  async function showFriday(y,m,d){ try{ const md=await PT.loadMonth(zone,m+1); const row=PT.rowForDate(md,new Date(y,m,d));
+      if(row) toast(`Fri ${d} ${PT.MON_SHORT[m+1]} · Zuhr/Jumuʿah ${row.luhr}`); }catch{} }
+
+  function updateCompass(){
+    const q=PT.qiblaForZone(zone);
+    // if we have a live device heading, rotate dial so N points to -heading and arrow stays at qibla
+    if(heading!=null){ $('cdial').style.transform=`rotate(${(q-heading)}deg)`; }
+    else { $('cdial').style.transform=`rotate(${q}deg)`; }
+  }
+
+  function renderLive(){
+    const row=PT.todayRow(data); st=PT.status(row);
+    // checklist states
+    let done=0;
+    document.querySelectorAll('.pl .r').forEach(r=>{
+      const k=r.dataset.k; const t=PT.parseTime(row[k]); const passed=t&&new Date()>=t;
+      r.classList.toggle('now',k===st.current); r.classList.toggle('done',passed&&k!==st.current);
+      const ck=r.querySelector('[data-ck]'); ck.textContent = k==='sunrise'?'' : (passed?'✓':'');
+      if(k!=='sunrise'&&passed) done++;
+    });
+    const pct=done/5; $('ring-fill').setAttribute('stroke-dashoffset',(100-pct*100).toFixed(1)); $('ring-txt').textContent=done+'/5';
+
+    if(tgt){
+      const ms=PT.msUntil(tgt.row,tgt.key,tgt.isNextDay);
+      $('cd-label').textContent=tgt.isNextDay?"Tomorrow's prayer":(st.current?'Next prayer':'First prayer');
+      $('cd-name').textContent=PT.P_LABEL[tgt.key]; $('cd-at').textContent='at '+(tgt.row[tgt.key]||'—');
+      $('cd-count').textContent=PT.fmtHMS(ms);
+      $('cd-seg').style.width=(PT.segmentProgress(row,st)*100)+'%';
+    }
+  }
+
+  async function load(){ try{
+      data=await PT.loadMonth(zone,new Date().getMonth()+1);
+      st=PT.status(PT.todayRow(data)); tgt=await PT.nextTarget(zone,data,st);
+      renderStatic(); renderLive();
+      clearInterval(tickT); tickT=setInterval(async()=>{const s2=PT.status(PT.todayRow(data));
+        if(s2.isNextDay!==st.isNextDay||s2.next!==(tgt&&tgt.key)) tgt=await PT.nextTarget(zone,data,s2);
+        st=s2; renderLive();},1000);
+    }catch(e){toast('Could not load times.');console.error(e);} }
+
+  fillZones();
+  $('zone-sel').addEventListener('change',e=>{zone=e.target.value;PT.setZone(zone);load();});
+  $('btn-locate').addEventListener('click',async()=>{const b=$('btn-locate');b.textContent='⏳';
+    try{const r=await PT.locate();if(r.zone){zone=r.zone;PT.setZone(zone);$('zone-sel').value=zone;await load();toast(`📍 ${PT.districtsLabel(zone)}`);}else toast('Outside Sri Lanka — pick your district.');}
+    catch{toast('Location unavailable — pick your district.');}b.textContent='📍';});
+  $('q-live').addEventListener('click',async()=>{
+    function onOrient(e){ const hd = e.webkitCompassHeading!=null ? e.webkitCompassHeading : (e.alpha!=null? 360-e.alpha : null); if(hd!=null){heading=hd;updateCompass();} }
+    try{
+      if(typeof DeviceOrientationEvent!=='undefined' && DeviceOrientationEvent.requestPermission){
+        const p=await DeviceOrientationEvent.requestPermission(); if(p!=='granted'){toast('Compass permission denied');return;}
+      }
+      window.addEventListener('deviceorientation',onOrient,true);
+      $('q-sub').textContent='live heading'; toast('Hold phone flat. Arrow points to Qibla.');
+    }catch{toast('Live compass not available on this device.');}
+  });
+  load();
+})();
+</script>
+</body>
+</html>

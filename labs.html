@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VG92HJCJR7"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-VG92HJCJR7');</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Labs — New UI Experiments · Sri Lanka Prayer Times</title>
+  <meta name="description" content="Five experimental, ground-up redesigns of the Sri Lanka prayer times app — radial dial, day timeline, swipe cards, dashboard, and an immersive sky." />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#0B0E14" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧪</text></svg>" />
+  <style>
+    @font-face{font-family:'Plus Jakarta Sans';font-weight:400 800;font-display:swap;src:url('assets/fonts/plus-jakarta-sans.woff2') format('woff2');}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{background:#0B0E14;-webkit-tap-highlight-color:transparent;}
+    body{font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;color:#EEF1F6;min-height:100vh;-webkit-font-smoothing:antialiased;
+      background:radial-gradient(90% 50% at 15% 0%,#15203A 0%,transparent 55%),radial-gradient(80% 50% at 95% 100%,#2A1640 0%,transparent 55%),#0B0E14;
+      padding:calc(28px + env(safe-area-inset-top)) 18px calc(36px + env(safe-area-inset-bottom));}
+    .wrap{max-width:760px;margin:0 auto;}
+    .kicker{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#7FE6B6;}
+    h1{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.12;margin-top:8px;}
+    .lead{font-size:14px;color:#9AA3B2;margin-top:10px;line-height:1.65;max-width:60ch;}
+    .lead a{color:#7FE6B6;}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:26px;}
+    @media(max-width:560px){.grid{grid-template-columns:1fr;}}
+    .card{display:flex;flex-direction:column;text-decoration:none;color:inherit;border-radius:20px;overflow:hidden;
+      border:1px solid rgba(255,255,255,.10);background:#13161E;transition:transform .15s,border-color .15s;}
+    .card:hover{border-color:rgba(127,230,182,.5);transform:translateY(-2px);}
+    .card:active{transform:scale(.99);}
+    .prev{height:150px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+    .prev .big{font-size:56px;filter:drop-shadow(0 6px 20px rgba(0,0,0,.5));}
+    .num{position:absolute;left:14px;top:12px;font-size:11px;font-weight:800;color:rgba(255,255,255,.55);}
+    /* per-card preview backgrounds */
+    .p1{background:radial-gradient(120% 90% at 50% -10%,#16204A,transparent 55%),#070A18;}
+    .p1::after{content:'';position:absolute;width:96px;height:96px;border-radius:50%;border:2px dashed rgba(240,199,88,.5);}
+    .p2{background:radial-gradient(100% 60% at 50% 0,#16241D,transparent),#0E1512;}
+    .p3{background:radial-gradient(90% 60% at 20% 0,#2A1B53,transparent 55%),radial-gradient(90% 60% at 90% 100%,#4A1742,transparent 55%),#120E1C;}
+    .p4{background:radial-gradient(80% 50% at 0 0,#14202E,transparent 60%),#0B0D10;}
+    .p5{background:linear-gradient(180deg,#0a1430 0%,#8a3f6e 70%,#e76b4b 100%);}
+    .meta{padding:14px 16px;border-top:1px solid rgba(255,255,255,.07);}
+    .name{font-size:16px;font-weight:800;}
+    .tag{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#0B0E14;background:#7FE6B6;border-radius:99px;padding:2px 8px;margin-left:8px;vertical-align:middle;}
+    .desc{font-size:12.5px;color:#9AA3B2;margin-top:5px;line-height:1.5;}
+    .feat{font-size:11px;color:#71B8A0;margin-top:8px;}
+    .go{display:inline-block;margin-top:10px;font-size:13px;font-weight:800;color:#7FE6B6;}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:26px;}
+    @media(max-width:480px){.row2{grid-template-columns:1fr;}}
+    .alt{display:block;text-decoration:none;border-radius:16px;padding:16px 18px;border:1px solid rgba(255,255,255,.12);}
+    .alt .t{font-size:14px;font-weight:800;} .alt .s{font-size:12px;color:#9AA3B2;margin-top:3px;}
+    .alt.theme{background:linear-gradient(120deg,rgba(207,163,68,.16),transparent);} .alt.theme .t{color:#F0C758;}
+    .alt.live{background:linear-gradient(120deg,rgba(127,230,182,.14),transparent);} .alt.live .t{color:#7FE6B6;}
+    .note{font-size:11.5px;color:#6B7280;margin-top:22px;text-align:center;line-height:1.7;}
+    .note a{color:#7FE6B6;}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">🧪 Labs · pray.gear.lk</div>
+  <h1>Five brand-new ways to see prayer times</h1>
+  <p class="lead">Not colour swaps — these are <strong>ground-up redesigns</strong>, each with a different
+  layout, interaction and extra features (Qibla compass, week view, day progress, live sun position).
+  All use the same official <a href="https://www.acju.lk/prayer-times/" target="_blank" rel="noopener">ACJU</a>
+  data as the live site. Tap one to try it, then tell me which direction you like via
+  <a href="https://wa.me/94775569953">WhatsApp</a> or <a href="mailto:pray@gear.lk">email</a>.</p>
+
+  <div class="grid">
+    <a class="card" href="ui-orbit.html">
+      <div class="prev p1"><span class="num">01</span><span class="big">🪐</span></div>
+      <div class="meta"><div class="name">Orbit <span class="tag">radial</span></div>
+        <div class="desc">A 24-hour clock dial — prayers sit around the ring, a hand sweeps the day, and an arc fills toward the next prayer.</div>
+        <div class="feat">✦ Live sun/night arc · tappable markers · Qibla bearing</div>
+        <span class="go">Try Orbit →</span></div>
+    </a>
+
+    <a class="card" href="ui-journey.html">
+      <div class="prev p2"><span class="num">02</span><span class="big">🛤️</span></div>
+      <div class="meta"><div class="name">Journey <span class="tag">timeline</span></div>
+        <div class="desc">The day as a vertical path from Fajr to Isha. A line fills as time passes and shows exactly where you are.</div>
+        <div class="feat">✦ Between-prayer gaps · day progress · segment bar</div>
+        <span class="go">Try Journey →</span></div>
+    </a>
+
+    <a class="card" href="ui-stories.html">
+      <div class="prev p3"><span class="num">03</span><span class="big">🃏</span></div>
+      <div class="meta"><div class="name">Stories <span class="tag">swipe</span></div>
+        <div class="desc">Full-screen day cards you swipe through — today, tomorrow, the whole week. Built for the thumb.</div>
+        <div class="feat">✦ 7-day week view · gestures + arrows · per-day share</div>
+        <span class="go">Try Stories →</span></div>
+    </a>
+
+    <a class="card" href="ui-bento.html">
+      <div class="prev p4"><span class="num">04</span><span class="big">🍱</span></div>
+      <div class="meta"><div class="name">Bento <span class="tag">dashboard</span></div>
+        <div class="desc">A glanceable grid of widgets: big countdown, Qibla compass, prayer checklist, and a month heatmap.</div>
+        <div class="feat">✦ Qibla compass (live heading) · calendar · progress ring</div>
+        <span class="go">Try Bento →</span></div>
+    </a>
+
+    <a class="card" href="ui-ambient.html">
+      <div class="prev p5"><span class="num">05</span><span class="big">🌄</span></div>
+      <div class="meta"><div class="name">Ambient <span class="tag">immersive</span></div>
+        <div class="desc">A living sky that shifts through dawn, day, dusk and night using today's real sun times. Tap for the full list.</div>
+        <div class="feat">✦ Time-of-day scene · screensaver feel · huge type</div>
+        <span class="go">Try Ambient →</span></div>
+    </a>
+  </div>
+
+  <div class="row2">
+    <a class="alt theme" href="designs.html"><div class="t">🎨 Colour themes</div><div class="s">5 palette variations of the current layout</div></a>
+    <a class="alt live" href="./"><div class="t">🕌 Live site</div><div class="s">The version in use today at pray.gear.lk</div></a>
+  </div>
+
+  <p class="note">
+    Experiments only — the live site is unchanged. Feedback decides what ships next.<br>
+    <a href="mailto:pray@gear.lk">pray@gear.lk</a> · <a href="https://wa.me/94775569953">WhatsApp 077 556 9953</a>
+  </p>
+</div>
+</body>
+</html>

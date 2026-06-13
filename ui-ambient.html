@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ambient · Sri Lanka Prayer Times</title>
+<meta name="description" content="Experimental UI — an immersive sky that shifts with the time of day (ACJU)." />
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#0a1430" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌄</text></svg>" />
+<style>
+  @font-face{font-family:'Plus Jakarta Sans';font-weight:400 800;font-display:swap;src:url('assets/fonts/plus-jakarta-sans.woff2') format('woff2');}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{ --font:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+    --sky-a:#0a1430; --sky-b:#1b2a5e; --glow:#ffd27a; --ink:#fff; --soft:rgba(255,255,255,.78); --faint:rgba(255,255,255,.5);
+  }
+  html{background:var(--sky-a);-webkit-tap-highlight-color:transparent;}
+  body{font-family:var(--font);color:var(--ink);min-height:100vh;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased;position:relative;}
+  /* sky */
+  .sky{position:fixed;inset:0;z-index:0;transition:background 2.5s ease;
+    background:linear-gradient(180deg,var(--sky-a) 0%, var(--sky-b) 60%, var(--sky-c,#2a3a72) 100%);}
+  .celest{position:fixed;z-index:1;font-size:64px;left:50%;transition:all 2.5s ease;filter:drop-shadow(0 0 30px var(--glow));pointer-events:none;}
+  .ground{position:fixed;left:0;right:0;bottom:0;height:24vh;z-index:1;transition:background 2.5s ease;pointer-events:none;
+    background:linear-gradient(180deg,transparent,rgba(0,0,0,.45));}
+  .stars{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:var(--star,0);transition:opacity 2.5s;
+    background-image:radial-gradient(1.4px 1.4px at 15% 20%,#fff,transparent),radial-gradient(1.4px 1.4px at 75% 15%,#fff,transparent),
+      radial-gradient(1px 1px at 40% 30%,#fff,transparent),radial-gradient(1.6px 1.6px at 88% 45%,#fff,transparent),
+      radial-gradient(1px 1px at 55% 55%,#fff,transparent),radial-gradient(1.3px 1.3px at 25% 65%,#fff,transparent),
+      radial-gradient(1px 1px at 65% 78%,#fff,transparent),radial-gradient(1.5px 1.5px at 10% 85%,#fff,transparent);}
+
+  .topbar{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:calc(12px + env(safe-area-inset-top)) 18px 10px;font-size:12px;font-weight:700;}
+  .topbar a{color:var(--soft);text-decoration:none;text-shadow:0 1px 8px rgba(0,0,0,.4);} .topbar a:hover{color:#fff;}
+  .topbar .t-title{color:#fff;letter-spacing:.04em;}
+
+  .stage{position:relative;z-index:3;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px;cursor:pointer;}
+  .phase{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.22em;color:var(--soft);text-shadow:0 1px 10px rgba(0,0,0,.45);}
+  .zone{font-size:13px;color:var(--soft);margin-top:6px;text-shadow:0 1px 10px rgba(0,0,0,.45);}
+  .next-lbl{font-size:13px;font-weight:700;color:var(--soft);margin-top:30px;letter-spacing:.04em;text-shadow:0 1px 10px rgba(0,0,0,.4);}
+  .next-name{font-size:clamp(46px,16vw,92px);font-weight:800;letter-spacing:-.03em;line-height:.98;text-shadow:0 4px 40px rgba(0,0,0,.4);}
+  .count{font-size:clamp(30px,9vw,46px);font-weight:800;font-variant-numeric:tabular-nums;margin-top:8px;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  .at{font-size:14px;color:var(--soft);margin-top:4px;text-shadow:0 1px 10px rgba(0,0,0,.4);}
+  .tap-hint{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:4;
+    font-size:12px;color:var(--faint);text-shadow:0 1px 8px rgba(0,0,0,.4);}
+
+  /* slide-up sheet with full list + controls */
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:8;transform:translateY(100%);transition:transform .4s cubic-bezier(.22,1,.36,1);
+    background:rgba(12,16,32,.78);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-top:1px solid rgba(255,255,255,.14);
+    border-radius:26px 26px 0 0;padding:14px 18px calc(22px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;}
+  .sheet.open{transform:translateY(0);}
+  .grip{width:42px;height:5px;border-radius:99px;background:rgba(255,255,255,.3);margin:2px auto 12px;}
+  .sheet h3{font-size:14px;font-weight:800;margin-bottom:10px;}
+  .controls{display:flex;gap:9px;margin-bottom:12px;}
+  select,.btn{font-family:inherit;border-radius:11px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:#fff;padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;}
+  select{flex:1;min-width:0;} select option{background:#11162a;}
+  .list{display:flex;flex-direction:column;gap:7px;}
+  .li{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:13px;background:rgba(255,255,255,.06);}
+  .li.now{background:linear-gradient(120deg,rgba(255,210,122,.22),transparent);box-shadow:inset 3px 0 0 var(--glow);}
+  .li.sun{opacity:.65;} .li .ic{font-size:17px;width:22px;text-align:center;}
+  .li .nm{font-size:14px;font-weight:700;} .li .tg{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;background:var(--glow);color:#2a1c00;border-radius:99px;padding:2px 7px;margin-left:7px;}
+  .li .tm{margin-left:auto;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;}
+  .sheet-foot{font-size:11px;color:var(--faint);margin-top:12px;text-align:center;line-height:1.7;}
+  .sheet-foot a{color:#fff;text-decoration:underline;}
+  .toast{position:fixed;left:50%;bottom:calc(72px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(12px);z-index:20;
+    background:rgba(12,16,32,.92);color:#fff;border:1px solid rgba(255,255,255,.18);font-size:12.5px;font-weight:600;padding:10px 16px;border-radius:99px;opacity:0;pointer-events:none;transition:.25s;max-width:90vw;text-align:center;}
+  .toast.show{opacity:1;transform:translateX(-50%);}
+  @media(prefers-reduced-motion:reduce){ .sky,.celest,.ground,.stars{transition:none;} }
+</style>
+</head>
+<body>
+  <div class="sky" id="sky"></div>
+  <div class="stars" id="stars"></div>
+  <div class="celest" id="celest" style="top:30%">🌙</div>
+  <div class="ground" id="ground"></div>
+
+  <div class="topbar">
+    <a href="labs.html">← Labs</a>
+    <span class="t-title">🌄 AMBIENT</span>
+    <a href="ui-orbit.html">Next →</a>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="phase" id="phase">—</div>
+    <div class="zone" id="zone">Sri Lanka</div>
+    <div class="next-lbl" id="next-lbl">Next prayer</div>
+    <div class="next-name" id="next-name">—</div>
+    <div class="count" id="count">--:--:--</div>
+    <div class="at" id="at">—</div>
+  </div>
+  <div class="tap-hint" id="hint">tap anywhere for the full timetable ↑</div>
+
+  <div class="sheet" id="sheet">
+    <div class="grip"></div>
+    <h3 id="sheet-title">Today</h3>
+    <div class="controls">
+      <select id="zone-sel" aria-label="District"></select>
+      <button class="btn" id="btn-locate">📍</button>
+      <button class="btn" id="btn-share">↗</button>
+    </div>
+    <div class="list" id="list"></div>
+    <div class="sheet-foot">
+      The sky shifts through dawn, day, dusk &amp; night using today's real sun times.<br>
+      Data: <a href="https://www.acju.lk/prayer-times/" target="_blank" rel="noopener">ACJU official</a> ·
+      <a href="labs.html">All experiments</a> · <a href="./">Live site</a>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script src="assets/js/pt-core.js"></script>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  let zone=PT.getZone(), data=null, st=null, tgt=null, tickT=null, open=false;
+  function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3500);}
+  function fillZones(){const s=$('zone-sel');s.innerHTML='';PT.ZONES.forEach(z=>{const o=document.createElement('option');o.value=z.id;o.textContent=z.districts.join(', ');if(z.id===zone)o.selected=true;s.appendChild(o);});}
+
+  // sky palettes per phase: [topColor, midColor, bottomColor, glow, celestEmoji, celestTop%, starOpacity, phaseText]
+  const SKY={
+    night:    ['#070C1F','#0E1638','#1A2350','#9fb6ff','🌙','22%',1,'Night · Layl'],
+    dawn:     ['#243056','#7a5a86','#e29a76','#ffd27a','🌅','58%',.25,'Dawn · Fajr'],
+    morning:  ['#3a7bd5','#5fa8e8','#bfe3ff','#fff1c4','☀️','30%',0,'Morning · Duha'],
+    noon:     ['#2f7fd6','#5aa6ee','#cfe9ff','#ffffff','☀️','14%',0,'Midday · Zuhr'],
+    afternoon:['#3c6fae','#6f97c9','#d7c79a','#ffe9a8','🌤️','40%',0,'Afternoon · Asr'],
+    dusk:     ['#2a2350','#8a3f6e','#e76b4b','#ffae5c','🌇','60%',.2,'Sunset · Maghrib'],
+  };
+
+  function applyPhase(row){
+    const ph=PT.dayPhase(row); const p=SKY[ph]||SKY.night;
+    const sky=$('sky'); sky.style.setProperty('--sky-a',p[0]); sky.style.setProperty('--sky-b',p[1]); sky.style.setProperty('--sky-c',p[2]);
+    document.documentElement.style.setProperty('--glow',p[3]);
+    $('celest').textContent=p[4]; $('celest').style.top=p[5];
+    $('stars').style.setProperty('--star',p[6]); document.documentElement.style.setProperty('--star',p[6]);
+    $('phase').textContent=p[7];
+    $('ground').style.background=`linear-gradient(180deg,transparent,${ph==='night'?'rgba(0,0,0,.6)':'rgba(0,0,0,.35)'})`;
+    // place celestial horizontally by progress of daylight
+    const sr=PT.minutesOfDay(row.sunrise), ms=PT.minutesOfDay(row.magrib), now=new Date().getHours()*60+new Date().getMinutes();
+    let frac = (now-sr)/(ms-sr); frac=Math.max(.05,Math.min(.95,isFinite(frac)?frac:.5));
+    $('celest').style.left=(frac*100)+'%'; $('celest').style.transform='translateX(-50%)';
+  }
+
+  function renderStatic(){
+    $('zone').textContent=PT.districtsLabel(zone)+' · '+PT.zoneById(zone).name;
+    const now=new Date();
+    $('sheet-title').textContent=`${PT.WDAY_F[now.getDay()]} ${now.getDate()} ${PT.MON_FULL[now.getMonth()+1]} · ${PT.hijriShort()}`;
+    const row=PT.todayRow(data);
+    const list=$('list'); list.innerHTML='';
+    PT.PRAYERS.forEach(k=>{const {hm,ap}=PT.splitTime(row[k]);
+      const li=document.createElement('div'); li.className='li'+(k==='sunrise'?' sun':''); li.dataset.k=k;
+      li.innerHTML=`<span class="ic">${PT.P_ICON[k]}</span><span class="nm">${PT.P_LABEL[k]}<span class="tg" data-tg style="display:none"></span></span><span class="tm">${hm}<span style="font-size:10px;color:var(--soft)"> ${ap}</span></span>`;
+      list.appendChild(li);});
+    applyPhase(row);
+  }
+
+  function renderLive(){
+    const row=PT.todayRow(data); st=PT.status(row);
+    applyPhase(row);
+    document.querySelectorAll('.li').forEach(li=>{const k=li.dataset.k;li.classList.toggle('now',k===st.current);
+      const tg=li.querySelector('[data-tg]');tg.style.display='none';
+      if(k===st.next&&!st.isNextDay){tg.style.display='';tg.textContent='Next';}});
+    if(tgt){
+      $('next-lbl').textContent=tgt.isNextDay?"Tomorrow begins with":(st.current?'Next prayer':'First prayer');
+      $('next-name').textContent=PT.P_LABEL[tgt.key];
+      $('count').textContent=PT.fmtHMS(PT.msUntil(tgt.row,tgt.key,tgt.isNextDay));
+      $('at').textContent='at '+(tgt.row[tgt.key]||'—');
+    }
+  }
+
+  async function load(){ try{
+      data=await PT.loadMonth(zone,new Date().getMonth()+1);
+      st=PT.status(PT.todayRow(data)); tgt=await PT.nextTarget(zone,data,st);
+      renderStatic(); renderLive();
+      clearInterval(tickT); tickT=setInterval(async()=>{const s2=PT.status(PT.todayRow(data));
+        if(s2.isNextDay!==st.isNextDay||s2.next!==(tgt&&tgt.key)) tgt=await PT.nextTarget(zone,data,s2);
+        st=s2; renderLive();},1000);
+    }catch(e){toast('Could not load times.');console.error(e);} }
+
+  function setSheet(o){open=o;$('sheet').classList.toggle('open',o);$('hint').style.opacity=o?0:'';}
+  $('stage').addEventListener('click',()=>setSheet(true));
+  // tap outside sheet to close
+  document.addEventListener('click',e=>{ if(open && !$('sheet').contains(e.target) && !$('stage').contains(e.target)) setSheet(false); });
+  $('sheet').addEventListener('click',e=>{ if(e.target.classList.contains('grip')) setSheet(false); });
+
+  fillZones();
+  $('zone-sel').addEventListener('change',e=>{zone=e.target.value;PT.setZone(zone);load();});
+  $('btn-locate').addEventListener('click',async()=>{const b=$('btn-locate');b.textContent='⏳';
+    try{const r=await PT.locate();if(r.zone){zone=r.zone;PT.setZone(zone);$('zone-sel').value=zone;await load();toast(`📍 ${PT.districtsLabel(zone)}`);}else toast('Outside Sri Lanka — pick your district.');}
+    catch{toast('Location unavailable — pick your district.');}b.textContent='📍';});
+  $('btn-share').addEventListener('click',async()=>{const row=PT.todayRow(data);const text=PT.shareToday(data,row,PT.nowYear());
+    if(navigator.share){try{await navigator.share({title:'Sri Lanka Prayer Times',text});}catch{}}else{try{await navigator.clipboard.writeText(text);toast('Copied');}catch{toast('Copy failed');}}});
+  load();
+})();
+</script>
+</body>
+</html>

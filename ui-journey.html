@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Journey · Sri Lanka Prayer Times</title>
+<meta name="description" content="Experimental UI — the day as a vertical journey from Fajr to Isha (ACJU)." />
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#0E1512" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛤️</text></svg>" />
+<style>
+  @font-face{font-family:'Plus Jakarta Sans';font-weight:400 800;font-display:swap;src:url('assets/fonts/plus-jakarta-sans.woff2') format('woff2');}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#0E1512; --card:#152019; --ink:#ECF3EE; --muted:#8FA398; --faint:#5C6E64;
+    --line:rgba(255,255,255,.09); --accent:#3FB984; --accent2:#7FE6B6; --gold:#E8C46A; --rail:#243530;
+    --font:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+  }
+  html{background:var(--bg);-webkit-tap-highlight-color:transparent;}
+  body{font-family:var(--font);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+    background:radial-gradient(100% 50% at 50% 0%, #16241D 0%, transparent 60%), var(--bg);
+    padding:0 0 calc(30px + env(safe-area-inset-bottom));}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px;font-size:12px;font-weight:700;
+    position:sticky;top:0;z-index:20;background:rgba(14,21,18,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+    padding-top:calc(12px + env(safe-area-inset-top));}
+  .topbar a{color:var(--muted);text-decoration:none;} .topbar a:hover{color:var(--ink);}
+  .topbar .t-title{color:var(--accent2);letter-spacing:.04em;}
+  .wrap{max-width:560px;margin:0 auto;padding:0 18px;}
+
+  /* hero progress header */
+  .hero{padding:20px 4px 6px;}
+  .zone{font-size:15px;font-weight:800;}
+  .date{font-size:12px;color:var(--muted);margin-top:2px;}
+  .prog-card{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px;}
+  .pc-top{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;}
+  .pc-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--accent2);}
+  .pc-name{font-size:26px;font-weight:800;letter-spacing:-.02em;margin-top:2px;}
+  .pc-at{font-size:12px;color:var(--muted);}
+  .pc-count{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--gold);}
+  .pc-bar{height:8px;border-radius:99px;background:var(--rail);margin-top:14px;overflow:hidden;}
+  .pc-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0;transition:width .5s;}
+  .pc-meta{display:flex;justify-content:space-between;font-size:10.5px;color:var(--faint);margin-top:7px;}
+  .daybar{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:11px;color:var(--muted);}
+  .daybar .track{flex:1;height:6px;border-radius:99px;background:var(--rail);overflow:hidden;}
+  .daybar .done{height:100%;background:var(--accent);width:0;transition:width .5s;}
+
+  /* timeline */
+  .tl{position:relative;margin:22px 0 8px;padding-left:46px;}
+  .tl::before{content:'';position:absolute;left:21px;top:6px;bottom:6px;width:3px;border-radius:3px;background:var(--rail);}
+  .tl-fill{position:absolute;left:21px;top:6px;width:3px;border-radius:3px;background:linear-gradient(180deg,var(--accent2),var(--accent));transition:height .6s;}
+  .station{position:relative;padding:0 0 22px;}
+  .node{position:absolute;left:-32px;top:2px;width:34px;height:34px;border-radius:50%;background:var(--card);border:2px solid var(--rail);
+    display:flex;align-items:center;justify-content:center;font-size:15px;z-index:2;}
+  .station.past .node{border-color:var(--accent);}
+  .station.now  .node{border-color:var(--gold);background:#2A2510;box-shadow:0 0 0 5px rgba(232,196,106,.14);}
+  .station.next .node{border-color:var(--accent2);}
+  .s-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .station.now .s-card{border-color:rgba(232,196,106,.5);background:linear-gradient(120deg,rgba(232,196,106,.10),transparent);}
+  .s-name{font-size:15px;font-weight:800;}
+  .s-tag{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:2px 8px;border-radius:99px;margin-left:8px;}
+  .tag-now{background:var(--gold);color:#2A2510;} .tag-next{background:var(--accent2);color:#0B1F16;}
+  .s-sub{font-size:11px;color:var(--faint);margin-top:2px;}
+  .s-time{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .s-time .ap{font-size:11px;color:var(--muted);font-weight:600;}
+  .s-gap{font-size:10.5px;color:var(--faint);padding:3px 0 0 4px;}
+  .station.sunrise .s-card{background:transparent;border-style:dashed;}
+  .station.sunrise .s-name,.station.sunrise .s-time{color:var(--muted);font-weight:600;}
+
+  .controls{display:flex;gap:9px;flex-wrap:wrap;margin:6px 0 0;}
+  select,.btn{font-family:inherit;border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--ink);
+    padding:9px 13px;font-size:13px;font-weight:700;cursor:pointer;}
+  select{flex:1;min-width:140px;} select option{background:#152019;}
+  .btn-accent{background:var(--accent);color:#06150E;border:none;}
+  .strip{display:flex;gap:12px;margin-top:16px;}
+  .strip .cell{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center;}
+  .strip .cl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--faint);}
+  .strip .cv{font-size:17px;font-weight:800;margin-top:3px;font-variant-numeric:tabular-nums;}
+  .foot{text-align:center;font-size:11px;color:var(--faint);margin-top:22px;line-height:1.7;}
+  .foot a{color:var(--accent2);text-decoration:none;}
+  .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(12px);
+    background:#1A2A22;color:#fff;border:1px solid var(--line);font-size:12.5px;font-weight:600;padding:10px 16px;border-radius:99px;
+    z-index:50;opacity:0;pointer-events:none;transition:.25s;max-width:90vw;text-align:center;}
+  .toast.show{opacity:1;transform:translateX(-50%);}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="labs.html">← Labs</a>
+    <span class="t-title">🛤️ JOURNEY</span>
+    <a href="ui-stories.html">Next →</a>
+  </div>
+
+  <div class="wrap">
+    <div class="hero">
+      <div class="zone" id="zone-name">Sri Lanka</div>
+      <div class="date" id="date-line">—</div>
+
+      <div class="prog-card">
+        <div class="pc-top">
+          <div>
+            <div class="pc-label" id="pc-label">Next prayer</div>
+            <div class="pc-name" id="pc-name">—</div>
+            <div class="pc-at" id="pc-at">—</div>
+          </div>
+          <div class="pc-count" id="pc-count">--:--:--</div>
+        </div>
+        <div class="pc-bar"><div class="pc-fill" id="pc-fill"></div></div>
+        <div class="pc-meta"><span id="pc-from">—</span><span id="pc-to">—</span></div>
+        <div class="daybar">
+          <span>Day</span><div class="track"><div class="done" id="day-done"></div></div><span id="day-pct">0%</span>
+        </div>
+      </div>
+
+      <div class="controls" style="margin-top:14px;">
+        <select id="zone-sel" aria-label="District"></select>
+        <button class="btn" id="btn-locate">📍</button>
+        <button class="btn btn-accent" id="btn-share">↗ Share</button>
+      </div>
+    </div>
+
+    <div class="tl" id="tl"><div class="tl-fill" id="tl-fill"></div></div>
+
+    <div class="strip">
+      <div class="cell"><div class="cl">🌙 Imsak · Sahr</div><div class="cv" id="imsak">—</div></div>
+      <div class="cell"><div class="cl">🌇 Iftar · Maghrib</div><div class="cv" id="iftar">—</div></div>
+    </div>
+
+    <p class="foot">
+      Your day, top to bottom. The line fills as time passes.<br>
+      Data: <a href="https://www.acju.lk/prayer-times/" target="_blank" rel="noopener">ACJU official</a> ·
+      <a href="labs.html">All experiments</a> · <a href="./">Live site</a>
+    </p>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script src="assets/js/pt-core.js"></script>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  let zone=PT.getZone(), data=null, st=null, tgt=null, tickT=null;
+  const ORDER=['fajr','sunrise','luhr','asr','magrib','isha'];
+  function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3500);}
+
+  function fillZones(){const s=$('zone-sel');s.innerHTML='';PT.ZONES.forEach(z=>{const o=document.createElement('option');o.value=z.id;o.textContent=z.districts.join(', ');if(z.id===zone)o.selected=true;s.appendChild(o);});}
+
+  function buildStations(){
+    const row=PT.todayRow(data);
+    const tl=$('tl');
+    // wipe (keep fill el)
+    [...tl.querySelectorAll('.station')].forEach(n=>n.remove());
+    ORDER.forEach((k,i)=>{
+      const {hm,ap}=PT.splitTime(row[k]);
+      const st_=document.createElement('div'); st_.className='station'+(k==='sunrise'?' sunrise':''); st_.dataset.k=k;
+      // gap to next
+      let gap='';
+      if(i<ORDER.length-1){
+        const d=PT.minutesOfDay(row[ORDER[i+1]])-PT.minutesOfDay(row[k]);
+        if(d>0) gap=`<div class="s-gap">↓ ${Math.floor(d/60)?Math.floor(d/60)+'h ':''}${d%60}m to ${PT.P_LABEL[ORDER[i+1]]}</div>`;
+      }
+      st_.innerHTML=`<div class="node">${PT.P_ICON[k]}</div>
+        <div class="s-card">
+          <div><div class="s-name">${PT.P_LABEL[k]}<span class="s-tag" data-tag></span></div>
+          <div class="s-sub">${k==='sunrise'?'Shurooq · not a salah':k==='fajr'?'Dawn':k==='magrib'?'Sunset · Iftar':''}</div></div>
+          <div class="s-time">${hm}<span class="ap"> ${ap}</span></div>
+        </div>${gap}`;
+      tl.appendChild(st_);
+    });
+  }
+
+  function renderStatic(){
+    const now=new Date();
+    $('zone-name').textContent=PT.districtsLabel(zone);
+    $('date-line').textContent=`${PT.WDAY_F[now.getDay()]}, ${now.getDate()} ${PT.MON_FULL[now.getMonth()+1]} · ${PT.hijriShort()}`;
+    const row=PT.todayRow(data);
+    $('imsak').textContent=PT.minusMins(row.fajr,2);
+    $('iftar').textContent=row.magrib;
+    buildStations();
+  }
+
+  function renderLive(){
+    const row=PT.todayRow(data); st=PT.status(row);
+    // stations state
+    document.querySelectorAll('.station').forEach(node=>{
+      const k=node.dataset.k; node.classList.remove('past','now','next');
+      const tag=node.querySelector('[data-tag]'); tag.textContent=''; tag.className='s-tag';
+      if(k===st.current){node.classList.add('now'); if(k!=='sunrise'){tag.textContent='Now';tag.classList.add('s-tag','tag-now');}}
+      else if(k===st.next && !st.isNextDay){node.classList.add('next'); tag.textContent='Next';tag.classList.add('s-tag','tag-next');}
+      else if(st.current && ORDER.indexOf(k)<ORDER.indexOf(st.current)){node.classList.add('past');}
+    });
+    // timeline fill height: by current time vs day span
+    const f=PT.minutesOfDay(row.fajr), ish=PT.minutesOfDay(row.isha);
+    const nowMin=new Date().getHours()*60+new Date().getMinutes();
+    const dayFrac=Math.max(0,Math.min(1,(nowMin-f)/(ish-f)));
+    const tl=$('tl'); const h=tl.clientHeight-12;
+    $('tl-fill').style.height=(h*dayFrac)+'px';
+
+    // day progress (salah done out of 5)
+    const doneCount=PT.SALAH.filter(k=>{ const t=PT.parseTime(row[k]); return t && new Date()>=t; }).length;
+    $('day-done').style.width=(doneCount/5*100)+'%';
+    $('day-pct').textContent=doneCount+'/5';
+
+    // next card
+    if(tgt){
+      const ms=PT.msUntil(tgt.row,tgt.key,tgt.isNextDay);
+      $('pc-label').textContent=tgt.isNextDay?"Tomorrow's prayer":(st.current?'Next prayer':'First prayer');
+      $('pc-name').textContent=PT.P_LABEL[tgt.key];
+      $('pc-at').textContent='at '+(tgt.row[tgt.key]||'—');
+      $('pc-count').textContent=PT.fmtHMS(ms);
+      const p=PT.segmentProgress(row,st);
+      $('pc-fill').style.width=(p*100)+'%';
+      $('pc-from').textContent=st.current?`${PT.P_LABEL[st.current]} ${row[st.current]}`:'—';
+      $('pc-to').textContent=`${PT.P_LABEL[tgt.key]} ${tgt.row[tgt.key]||''}`;
+    }
+  }
+
+  async function load(){
+    try{
+      data=await PT.loadMonth(zone,new Date().getMonth()+1);
+      st=PT.status(PT.todayRow(data)); tgt=await PT.nextTarget(zone,data,st);
+      renderStatic(); renderLive();
+      clearInterval(tickT);
+      tickT=setInterval(async()=>{ const s2=PT.status(PT.todayRow(data));
+        if(s2.isNextDay!==st.isNextDay||s2.next!==(tgt&&tgt.key)) tgt=await PT.nextTarget(zone,data,s2);
+        st=s2; renderLive(); },1000);
+    }catch(e){ toast('Could not load times.'); console.error(e); }
+  }
+
+  fillZones();
+  $('zone-sel').addEventListener('change',e=>{zone=e.target.value;PT.setZone(zone);load();});
+  $('btn-locate').addEventListener('click',async()=>{const b=$('btn-locate');b.textContent='⏳';
+    try{const r=await PT.locate();if(r.zone){zone=r.zone;PT.setZone(zone);$('zone-sel').value=zone;await load();toast(`📍 ${PT.districtsLabel(zone)}`);}else toast('Outside Sri Lanka — pick your district.');}
+    catch{toast('Location unavailable — pick your district.');}b.textContent='📍';});
+  $('btn-share').addEventListener('click',async()=>{const row=PT.todayRow(data);const text=PT.shareToday(data,row,PT.nowYear());
+    if(navigator.share){try{await navigator.share({title:'Sri Lanka Prayer Times',text});}catch{}}else{try{await navigator.clipboard.writeText(text);toast('Copied');}catch{toast('Copy failed');}}});
+  load();
+  window.addEventListener('resize',()=>{ if(data) renderLive(); });
+})();
+</script>
+</body>
+</html>
