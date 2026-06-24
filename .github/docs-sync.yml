@@ -1,0 +1,15 @@
+# List the files in THIS repo that should be mirrored to msfrox/public-docs.
+#
+# `source` = path in this repo
+# `dest`   = path it lands at under repos/<this-repo-name>/ in public-docs (defaults to `source` if omitted)
+#
+# Example:
+files:
+  - source: CHANGELOG.md
+    dest: changelog.md
+  - source: README.md
+    dest: readme.md
+  - source: BACKLOG.md
+    dest: backlog.md
+  - source: GUIDE.md
+    dest: guide.md
