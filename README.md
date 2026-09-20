@@ -178,10 +178,27 @@ added as a one-line override in `build/build-zones.js` (the `OVERRIDES` section)
 │   ├── adm2.geojson         ← geoBoundaries ADM2 (25 districts)
 │   ├── adm3.geojson         ← geoBoundaries ADM3 (DS divisions, Ampara cut only)
 │   └── package.json         ← turf, mapshaper (build deps only)
+├── tests/               ← Unit tests for assets/js/pt-core.js (vitest, no browser)
 ├── CNAME                ← pray.gear.lk custom domain
 ├── LICENSE              ← CC BY-NC-SA 4.0
 └── .github/workflows/   ← GitHub Actions Pages deploy on push
 ```
+
+---
+
+## Tests
+
+`assets/js/pt-core.js` — the DOM-agnostic engine the `/labs` experimental UIs share —
+has a unit test suite covering zone resolution (geofencing), prayer-time computation,
+and date/timezone edge cases (midnight and month-boundary rollover).
+
+```bash
+npm install
+npm test
+```
+
+No build step for the site itself is affected — this only adds dev dependencies for
+testing. See `tests/README.md` for how the tests work and what they cover.
 
 ---
 

@@ -1,0 +1,13 @@
+{
+  "name": "prayer-time-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Test suite for the ACJU Sri Lanka prayer-times site core logic (pt-core.js)",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.1"
+  }
+}
