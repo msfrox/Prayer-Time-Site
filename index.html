@@ -39,7 +39,7 @@
     <a class="header-logo" href="./">
       <div class="logo-emblem">🕌</div>
       <div class="logo-copy">
-        <div class="logo-title">Sri Lanka Prayer Times</div>
+        <h1 class="logo-title">Sri Lanka Prayer Times</h1>
         <div class="logo-sub">Source:ACJU Official Timetable <script>document.write(new Date().getFullYear());</script></div>
       </div>
     </a>
@@ -51,19 +51,19 @@
 
   <div class="selectors-bar">
     <div class="sel-group">
-      <span class="sel-label">District</span>
-      <select id="zone-selector" aria-label="Select zone or district"></select>
+      <label class="sel-label" for="zone-selector">District</label>
+      <select id="zone-selector"></select>
     </div>
     <div class="sel-group">
-      <span class="sel-label">Month</span>
-      <select id="month-selector" aria-label="Select month"></select>
+      <label class="sel-label" for="month-selector">Month</label>
+      <select id="month-selector"></select>
     </div>
     <button class="btn-locate" id="btn-locate">📍 Locate Me</button>
   </div>
 </header>
 
 <!-- ══ HERO — countdown ═══════════════════════════════════ -->
-<section class="hero-section">
+<section class="hero-section" aria-label="Today's prayer summary">
   <div class="hero-inner">
     <div class="hero-location">
       <span class="hero-location-name" id="hero-location-name">Sri Lanka</span>
@@ -233,26 +233,26 @@
 <!-- ══ FOOTER ════════════════════════════════════════════ -->
 <footer class="site-footer">
   <p>Prayer times from <a href="https://www.acju.lk/prayer-times/" target="_blank" rel="noopener">All Ceylon Jamiyyathul Ulama (ACJU)</a> official timetables · Sri Lanka Standard Time (UTC+5:30)</p>
-  <p style="margin-top:4px;font-size:10px;opacity:.6;">For the most accurate times always refer to the official ACJU PDF timetables at acju.lk</p>
-  <p style="margin-top:8px;font-size:11px;opacity:1;">Found an issue? email us - <a href="mailto:pray@gear.lk" style="color:var(--gold-400);text-decoration:none;">pray@gear.lk</a> or <a href="https://wa.me/94775569953" target="_blank" rel="noopener" style="color: #47832b;;text-decoration:none;">WhatsApp -  077 556 9953</a></p>
-  <p style="margin-top:8px;font-size:11px;opacity:1;">Thank you for visiting prayer times!</p>
-  <p style="margin-top:12px;font-size:12px;"><a href="labs.html" style="color:var(--gold-400);text-decoration:none;font-weight:700;">🧪 Try 5 brand-new UI experiments →</a></p>
-  <p style="margin-top:6px;font-size:12px;"><a href="designs.html" style="color:var(--gold-400);text-decoration:none;font-weight:700;">🎨 Pick a colour theme →</a></p>
-  <p style="margin-top:8px;font-size:10px;opacity:.35;" id="footer-version"></p>
+  <p style="margin-top:4px;font-size:10px;">For the most accurate times always refer to the official ACJU PDF timetables at acju.lk</p>
+  <p style="margin-top:8px;font-size:11px;">Found an issue? email us - <a href="mailto:pray@gear.lk">pray@gear.lk</a> or <a href="https://wa.me/94775569953" target="_blank" rel="noopener" style="color: #6FB84A;">WhatsApp -  077 556 9953</a></p>
+  <p style="margin-top:8px;font-size:11px;">Thank you for visiting prayer times!</p>
+  <p style="margin-top:12px;font-size:12px;"><a href="labs.html" style="color:var(--gold-400);font-weight:700;">🧪 Try 5 brand-new UI experiments →</a></p>
+  <p style="margin-top:6px;font-size:12px;"><a href="designs.html" style="color:var(--gold-400);font-weight:700;">🎨 Pick a colour theme →</a></p>
+  <p style="margin-top:8px;font-size:10px;" id="footer-version"></p>
 </footer>
 
 <!-- ══ SHARE MODAL ════════════════════════════════════════ -->
-<div class="share-modal-overlay" id="share-modal-overlay" role="dialog" aria-modal="true">
+<div class="share-modal-overlay" id="share-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="share-modal-title" inert>
   <div class="share-modal">
     <div class="share-modal-header">
-      <div class="share-modal-title">Share Prayer Times</div>
+      <div class="share-modal-title" id="share-modal-title">Share Prayer Times</div>
       <button class="btn-modal-close" id="btn-modal-close" aria-label="Close">✕</button>
     </div>
     <div class="share-date-picker" id="share-date-picker" style="display:none;">
       <span class="share-date-label">Date:</span>
       <input type="date" id="share-date-input" class="share-date-input" aria-label="Pick date to share" />
     </div>
-    <pre class="share-preview" id="share-preview-text"></pre>
+    <pre class="share-preview" id="share-preview-text" tabindex="0"></pre>
     <div class="share-actions">
       <button class="btn-copy"         id="btn-copy">📋 Copy</button>
       <button class="btn-share-native" id="btn-share-native">↗ Share</button>

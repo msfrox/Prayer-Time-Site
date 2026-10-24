@@ -92,6 +92,8 @@ function showLocatePrompt() {
   const card = document.createElement('div');
   card.id = 'locate-prompt';
   card.className = 'locate-prompt';
+  card.setAttribute('role', 'region');
+  card.setAttribute('aria-label', 'Location permission');
   card.innerHTML =
     `<span class="lp-text">📍 Show prayer times for your area?</span>
      <span class="lp-actions">
@@ -104,6 +106,7 @@ function showLocatePrompt() {
   const close = () => { markAsked(); card.classList.remove('visible'); setTimeout(() => card.remove(), 250); };
   document.getElementById('lp-allow').addEventListener('click', () => { close(); handleLocate(); });
   document.getElementById('lp-skip').addEventListener('click', close);
+  card.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
 }
 
 // ── Data fetching ─────────────────────────────────────────
@@ -256,7 +259,7 @@ function renderMonthly(data){
     // repeat every year, but the day of week shifts, so we need the actual year.
     const dow=new Date(S.year,data.monthNum-1,+dNum).getDay();
     const tr=document.createElement('tr');
-    if(isToday) tr.className='today-monthly';
+    if(isToday){ tr.className='today-monthly'; tr.setAttribute('aria-current','date'); }
     if(dow===5) tr.classList.add('is-friday');
     tr.innerHTML=`<td><strong>${WDAY_S[dow]}</strong>, ${day.date}${isToday?'<span class="today-chip">Today</span>':''}</td>
       <td>${day.fajr}</td><td>${day.sunrise}</td><td>${day.luhr}</td>
@@ -579,6 +582,44 @@ async function shareCanvasImage(canvas, filename) {
   });
 }
 
+// ── Dialog a11y helper: focus trap, Escape-to-close, focus return ─
+// Also inerts every other top-level section while open, so a modal doesn't just
+// out-tab-order the rest of the page — it actually removes it from the a11y tree,
+// which is what stops the header/main/footer from still reading as low-contrast
+// "visible" text underneath the modal's own backdrop tint.
+let _dialogReturnFocus = null;
+function siblingsOf(ov) {
+  return Array.from(document.body.children).filter(el => el !== ov && el.tagName !== 'SCRIPT');
+}
+function openDialog(ov) {
+  _dialogReturnFocus = document.activeElement;
+  ov.removeAttribute('inert');
+  ov.classList.add('visible');
+  siblingsOf(ov).forEach(el => el.setAttribute('inert', ''));
+  const focusable = ov.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  (focusable[0] || ov).focus();
+  ov.addEventListener('keydown', trapDialogKey);
+}
+function closeDialog(ov) {
+  ov.classList.remove('visible');
+  ov.setAttribute('inert', '');
+  siblingsOf(ov).forEach(el => el.removeAttribute('inert'));
+  ov.removeEventListener('keydown', trapDialogKey);
+  if (_dialogReturnFocus && typeof _dialogReturnFocus.focus === 'function') _dialogReturnFocus.focus();
+  _dialogReturnFocus = null;
+}
+function trapDialogKey(e) {
+  const ov = e.currentTarget;
+  if (e.key === 'Escape') { e.preventDefault(); closeDialog(ov); return; }
+  if (e.key !== 'Tab') return;
+  const focusable = Array.from(ov.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+    .filter(el => el.offsetParent !== null);
+  if (!focusable.length) return;
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+}
+
 // ── Share modal ────────────────────────────────────────────
 function openShareToday(data) {
   if (!data) { alert('No data loaded yet.'); return; }
@@ -625,7 +666,7 @@ function openShareToday(data) {
     updatePreview();
   }
 
-  ov.classList.add('visible');
+  openDialog(ov);
 }
 
 function openShareMonth(data, displayYear) {
@@ -642,11 +683,12 @@ function openShareMonth(data, displayYear) {
   pr.textContent = text;
   ov._text       = text;
   ov._shareCtx   = { type: 'month', data, year: yr };
-  ov.classList.add('visible');
+  openDialog(ov);
 }
 
 function closeShare() {
-  document.getElementById('share-modal-overlay')?.classList.remove('visible');
+  const ov = document.getElementById('share-modal-overlay');
+  if (ov) closeDialog(ov);
 }
 
 // ── Selectors ─────────────────────────────────────────────
