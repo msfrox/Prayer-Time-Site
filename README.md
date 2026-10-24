@@ -166,7 +166,8 @@ added as a one-line override in `build/build-zones.js` (the `OVERRIDES` section)
 ├── index.html           ← Entire page structure
 ├── assets/
 │   ├── css/style.css    ← All styling (~33 KB, ~7.5 KB gzip)
-│   └── js/app.js        ← All app logic incl. geofencing (~44 KB, ~14 KB gzip)
+│   ├── js/pt-core.js    ← DOM-agnostic core: data/time logic, geofencing, Qibla, Hijri (~15 KB, ~5.4 KB gzip)
+│   └── js/app.js        ← DOM layer on pt-core.js: render + events (~37 KB, ~11 KB gzip)
 ├── data/
 │   ├── zones.json           ← Zone → district list (loaded at startup)
 │   ├── zones.geojson        ← 13 zone polygons (lazy-loaded on "Locate Me", ~118 KB)
@@ -188,9 +189,10 @@ added as a one-line override in `build/build-zones.js` (the `OVERRIDES` section)
 
 ## Tests
 
-`assets/js/pt-core.js` — the DOM-agnostic engine the `/labs` experimental UIs share —
-has a unit test suite covering zone resolution (geofencing), prayer-time computation,
-and date/timezone edge cases (midnight and month-boundary rollover).
+`assets/js/pt-core.js` — the DOM-agnostic engine the live site's `app.js` and the
+`/labs` experimental UIs both consume — has a unit test suite covering zone
+resolution (geofencing), prayer-time computation, and date/timezone edge cases
+(midnight and month-boundary rollover).
 
 ```bash
 npm install
@@ -210,15 +212,18 @@ testing. See `tests/README.md` for how the tests work and what they cover.
 |-------|-----|-------------|
 | HTML | 13 KB | 4.7 KB |
 | style.css | 33 KB | 7.5 KB |
-| app.js | 44 KB | 13.7 KB |
+| app.js | 37 KB | 10.8 KB |
+| pt-core.js | 15 KB | 5.4 KB |
 | zones.json (JS fetch) | ~2 KB | ~1 KB |
 | zoneNN-MM.json (JS fetch) | ~4 KB | ~2 KB |
 | Google Fonts (5 woff2) | ~60 KB | ~60 KB |
 | zones.geojson | 118 KB | ~35 KB | ← **only on "Locate Me"** |
 
-The site itself (HTML + CSS + JS + one data file) comes in at roughly **90 KB
-transferred** on a cold load. Fonts add another 60 KB but are cached for a year after
-the first visit.
+The site itself (HTML + CSS + JS + one data file) comes in at roughly **104 KB**
+raw on a cold load — a few KB more than before v8.0.0's `pt-core.js` split, since
+`pt-core.js` also carries geofencing/Qibla helpers `app.js` doesn't use, traded for
+the two files no longer drifting apart. Fonts add another 60 KB but are cached for
+a year after the first visit.
 
 **What is not loaded by default:**
 - Any zone/month other than the selected one
@@ -339,6 +344,7 @@ is replaced at deploy time; the file in the repo always shows the placeholder.
 
 | Version | What changed |
 |---------|-------------|
+| **v8.0.0** | *Stop the drift.* `app.js` now consumes `assets/js/pt-core.js` as the single source of truth instead of carrying its own copy of the parsing/status/geofencing/Hijri logic — the two had drifted since `pt-core.js` was introduced in v7.1.0, so a fix or improvement made in one no longer silently misses the other. `app.js` shrank ~20% (46.6 KB → 37.4 KB); total JS payload for the live page grew slightly (`pt-core.js` also carries Qibla/labs-only helpers `app.js` doesn't use) — see "Performance characteristics". Behaviour-preserving: verified identical computed times across all 13 zones, the Dec 31 → Jan 1 month boundary, and both solstices, before and after. No user-visible change. |
 | **v7.1.0** | *Labs — 5 ground-up UI experiments.* New `labs.html` gallery linking five standalone, fully-working redesigns that each present the ACJU data a different way: **Orbit** (`ui-orbit.html`, 24-hour radial dial + sun arc + Qibla), **Journey** (`ui-journey.html`, vertical day timeline + day-progress), **Stories** (`ui-stories.html`, swipeable 7-day cards), **Bento** (`ui-bento.html`, dashboard: countdown, Qibla compass w/ live heading, prayer checklist + ring, month heatmap), **Ambient** (`ui-ambient.html`, immersive sky that shifts dawn→day→dusk→night by real sun times). All share a new DOM-agnostic engine `assets/js/pt-core.js` (reuses app.js logic + adds geofencing & Qibla bearing). Footer of the live site now links Labs + the colour themes. Previews only — live experience unchanged. |
 | **v7.0.0** | *Design concepts.* Added 5 fully-working design previews (`design-1.html`…`design-5.html`: Daylight, Midnight, Heritage, Dawn, Bold) sharing the live site's `app.js` + data via a token-driven base stylesheet (`assets/css/designs-base.css` + `designN.css`). New `designs.html` selection page with preview cards and a link to the live site; footer link on the live site invites users to preview and vote. |
 | **v6.3.0** | *Bug fix + docs.* Fixed day-of-week in monthly table using `data.year` (2026) instead of current real year — days would have been one off in 2027+. Documented solar-based data permanence: JSON files valid for all years, no yearly refresh needed. |

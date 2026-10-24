@@ -16,6 +16,7 @@ const DATA_CACHE    = 'data-v1';     // zone JSON — survives shell updates
 const SHELL_ASSETS = [
   '/',
   '/assets/css/style.css',
+  '/assets/js/pt-core.js',
   '/assets/js/app.js',
   '/assets/fonts/plus-jakarta-sans.woff2',
   '/assets/images/icon-192.png',

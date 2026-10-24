@@ -1,10 +1,8 @@
 /* ============================================================
-   Sri Lanka Prayer Times — App v4
-   Fixes:
-   - geoKm Haversine parameters corrected
-   - renderHeader now populates hero date block too
-   - buildMonthShare: aligned columns + separators
-   - Share modal: date picker for "Share Today"
+   Sri Lanka Prayer Times — App v8
+   assets/js/pt-core.js is the single source of truth for all
+   data + time logic (parsing, status, geofencing, Hijri). This
+   file is the DOM layer on top of it — render + event wiring only.
    ============================================================ */
 'use strict';
 
@@ -13,49 +11,23 @@
 // MINOR for improvements / bug fixes, MAJOR for new features or redesigns.
 // Update README version history when you bump.
 // Shown in the footer so users + reports can identify the build.
-const SITE_VERSION = '7.1.0';
+const SITE_VERSION = '8.0.0';
 
-// ── Constants ─────────────────────────────────────────────
-const DATA_BASE = './data';
-
-// zones.json inlined — eliminates one HTTP request on every page load.
-// Update this object if zone boundaries or district names ever change.
-const ZONES_INLINE = {"zones":[
-  {"id":"01","name":"Zone 01","districts":["Colombo","Gampaha","Kalutara"]},
-  {"id":"02","name":"Zone 02","districts":["Jaffna","Nallur"]},
-  {"id":"03","name":"Zone 03","districts":["Mullaitivu (excl. Nallur)","Kilinochchi","Vavuniya"]},
-  {"id":"04","name":"Zone 04","districts":["Mannar","Puttalam"]},
-  {"id":"05","name":"Zone 05","districts":["Anuradhapura","Polonnaruwa"]},
-  {"id":"06","name":"Zone 06","districts":["Kurunegala"]},
-  {"id":"07","name":"Zone 07","districts":["Kandy","Matale","Nuwara Eliya"]},
-  {"id":"08","name":"Zone 08","districts":["Batticaloa","Ampara"]},
-  {"id":"09","name":"Zone 09","districts":["Trincomalee"]},
-  {"id":"10","name":"Zone 10","districts":["Badulla","Monaragala","Padiyatalawa","Dehiattakandiya"]},
-  {"id":"11","name":"Zone 11","districts":["Ratnapura","Kegalle"]},
-  {"id":"12","name":"Zone 12","districts":["Galle","Matara"]},
-  {"id":"13","name":"Zone 13","districts":["Hambantota"]}
-]};
-
-const PRAYERS   = ['fajr','sunrise','luhr','asr','magrib','isha'];
-const P_LABEL   = { fajr:'Fajr', sunrise:'Sunrise', luhr:'Zuhr', asr:'Asr', magrib:'Maghrib', isha:'Isha' };
+// ── Constants pulled from PT (pt-core.js) — kept as local names
+// so the render code below didn't need to change call sites.
+const DATA_BASE = PT.DATA_BASE;
+const PRAYERS   = PT.PRAYERS;
+const P_LABEL   = PT.P_LABEL;
+// Own icon set: magrib differs from pt-core's (🏙️ vs 🌇) — a deliberate
+// live-site choice, not something pt-core should override.
 const P_ICON    = { fajr:'🌙', sunrise:'🌅', luhr:'☀️', asr:'🌤️', magrib:'🏙️', isha:'🌙' };
 
-const MON_FULL  = ['','January','February','March','April','May','June',
-                   'July','August','September','October','November','December'];
-const MON_SHORT = ['','Jan','Feb','Mar','Apr','May','Jun',
-                   'Jul','Aug','Sep','Oct','Nov','Dec'];
-const WDAY_S    = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-const WDAY_F    = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-const IDAY_F    = ["Al-Ahad","Al-Ithnayn","Ath-Thulathaa","Al-Arbi'aa","Al-Khamees","Al-Jumu'ah","As-Sabt"];
-const HIJ_MON   = ['Muharram','Safar',"Rabi' al-Awwal","Rabi' al-Thani",
-                   'Jumada al-Ula','Jumada al-Akhirah','Rajab',"Sha'ban",
-                   'Ramadan','Shawwal',"Dhu al-Qi'dah",'Dhu al-Hijjah'];
+const MON_FULL  = PT.MON_FULL;
+const MON_SHORT = PT.MON_SHORT;
+const WDAY_S    = PT.WDAY_S;
+const WDAY_F    = PT.WDAY_F;
+const IDAY_F    = PT.IDAY_F;
 
-// Geofencing: real ACJU zone polygons (lazy-loaded on first "Locate Me").
-// Points within SEA_BUFFER_KM of the coast snap to the nearest zone; beyond
-// that we report "outside Sri Lanka".
-const ZONES_GEO_URL = `${DATA_BASE}/zones.geojson`;
-const SEA_BUFFER_KM  = 8;
 const LS_ZONE  = 'slpt_zone';      // remembered zone across visits
 const LS_ASKED = 'slpt_asked';     // first-run soft-ask already shown
 
@@ -70,149 +42,24 @@ const S = {
   year:       new Date().getFullYear(),
   tickTimer:  null,
   clockTimer: null,
-  zoneGeo:    null,   // cached zones.geojson features (lazy-loaded on Locate Me)
 };
 
 // ── Utils ─────────────────────────────────────────────────
-const pad = n => String(n).padStart(2,'0');
+const pad = PT.pad;
+const findRowByDate = PT.rowForDate;
+const parseTime  = PT.parseTime;
+const minusMins  = PT.minusMins;
+const splitTime  = PT.splitTime;
+const hijriDate  = PT.hijriToday;
+const hijriShort = PT.hijriShort;
+const hijriForDate = PT.hijriFor;
 
-function findRowByDate(data, dateObj) {
-  if (!data || !data.days) return null;
-  const d = dateObj.getDate();
-  const m = MON_SHORT[dateObj.getMonth() + 1]; 
-  const searchStr = `${d}-${m}`;
-  return data.days.find(row => row.date === searchStr) || null;
-}
-
-const col = (s, w) => String(s).padEnd(w);
-
-function parseTime(str) {
-  if (!str) return null;
-  const m = str.match(/^(\d{1,2}):(\d{2})\s*([AP]M)$/i);
-  if (!m) return null;
-  let h = +m[1], min = +m[2];
-  const pm = m[3].toUpperCase() === 'PM';
-  if (pm && h !== 12) h += 12;
-  if (!pm && h === 12) h = 0;
-  const d = new Date(); d.setHours(h, min, 0, 0); return d;
-}
-
-function minusMins(timeStr, mins) {
-  const d = parseTime(timeStr); if (!d) return '';
-  d.setMinutes(d.getMinutes() - mins);
-  let h = d.getHours(), m = d.getMinutes();
-  const pm = h >= 12;
-  if (h > 12) h -= 12; if (h === 0) h = 12;
-  return `${h}:${pad(m)} ${pm ? 'PM' : 'AM'}`;
-}
-
-function splitTime(str) {
-  if (!str) return {hm:'--:--', ap:''};
-  const m = str.match(/^(\d{1,2}:\d{2})\s*([AP]M)$/i);
-  return m ? {hm:m[1], ap:m[2].toUpperCase()} : {hm:str, ap:''};
-}
-
-function hijriDate() {
-  try {
-    const now  = new Date();
-    const day  = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{day:'numeric'}).format(now);
-    const mon  = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{month:'numeric'}).format(now);
-    // Some browsers append " AH" to the year — strip it before we add our own
-    const year = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{year:'numeric'}).format(now)
-                   .replace(/\s*AH\s*$/i,'').trim();
-    return `${day} ${HIJ_MON[+mon-1] || ''} ${year} AH`;
-  } catch { return ''; }
-}
-
-function hijriShort() {
-  try {
-    const now  = new Date();
-    const day  = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{day:'numeric'}).format(now);
-    const mon  = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{month:'numeric'}).format(now);
-    const year = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{year:'numeric'}).format(now)
-                   .replace(/\s*AH\s*$/i,'').trim();
-    return `${day} ${HIJ_MON[+mon-1]?.slice(0,7) || ''} ${year} AH`;
-  } catch { return ''; }
-}
-
-// ── Geofencing helpers (no external libs) ──────────────────
-// Ray-casting point-in-polygon for one linear ring. ring = [[lng,lat],...]
-function pointInRing(lng, lat, ring) {
-  let inside = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const xi = ring[i][0], yi = ring[i][1];
-    const xj = ring[j][0], yj = ring[j][1];
-    const intersect = ((yi > lat) !== (yj > lat)) &&
-      (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
-    if (intersect) inside = !inside;
-  }
-  return inside;
-}
-// A GeoJSON polygon = [outerRing, hole1, hole2, ...]. Inside outer & outside all holes.
-function pointInPolygon(lng, lat, poly) {
-  if (!pointInRing(lng, lat, poly[0])) return false;
-  for (let h = 1; h < poly.length; h++) if (pointInRing(lng, lat, poly[h])) return false;
-  return true;
-}
-// Feature geometry may be Polygon or MultiPolygon.
-function pointInFeature(lng, lat, geom) {
-  if (geom.type === 'Polygon')      return pointInPolygon(lng, lat, geom.coordinates);
-  if (geom.type === 'MultiPolygon') return geom.coordinates.some(p => pointInPolygon(lng, lat, p));
-  return false;
-}
-
-// Distance (km) from a point to a line segment, on an equirectangular plane
-// scaled by latitude — accurate enough at Sri Lanka scale for the sea buffer.
-function distPointToSegKm(lng, lat, ax, ay, bx, by) {
-  const kx = 111.32 * Math.cos(lat * Math.PI / 180), ky = 110.57; // km per deg
-  const px = lng * kx, py = lat * ky;
-  const x1 = ax * kx, y1 = ay * ky, x2 = bx * kx, y2 = by * ky;
-  const dx = x2 - x1, dy = y2 - y1;
-  const len2 = dx * dx + dy * dy;
-  let t = len2 ? ((px - x1) * dx + (py - y1) * dy) / len2 : 0;
-  t = Math.max(0, Math.min(1, t));
-  const cx = x1 + t * dx, cy = y1 + t * dy;
-  return Math.hypot(px - cx, py - cy);
-}
-function distPointToFeatureKm(lng, lat, geom) {
-  const polys = geom.type === 'MultiPolygon' ? geom.coordinates
-              : geom.type === 'Polygon'      ? [geom.coordinates] : [];
-  let min = Infinity;
-  for (const poly of polys) for (const ring of poly) {
-    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-      const d = distPointToSegKm(lng, lat, ring[j][0], ring[j][1], ring[i][0], ring[i][1]);
-      if (d < min) min = d;
-    }
-  }
-  return min;
-}
-
-// Lazy-load the zone polygons once, cache on S.
-async function loadZoneGeo() {
-  if (S.zoneGeo) return S.zoneGeo;
-  const r = await fetch(ZONES_GEO_URL);
-  if (!r.ok) throw new Error('zones.geojson failed');
-  S.zoneGeo = (await r.json()).features;
-  return S.zoneGeo;
-}
-
-// Resolve a GPS coordinate to a zone.
-//   { zone:'NN', status:'exact'    } → point is inside a zone
-//   { zone:'NN', status:'nearshore'} → within SEA_BUFFER_KM of the coast, snapped
-//   { zone:null, status:'outside'  } → not in / near Sri Lanka
-function resolveZone(lat, lng) {
-  const feats = S.zoneGeo || [];
-  for (const f of feats) {
-    if (pointInFeature(lng, lat, f.geometry)) return { zone: f.properties.zone, status: 'exact' };
-  }
-  let best = null, bestKm = Infinity;
-  for (const f of feats) {
-    const d = distPointToFeatureKm(lng, lat, f.geometry);
-    if (d < bestKm) { bestKm = d; best = f.properties.zone; }
-  }
-  if (best && bestKm <= SEA_BUFFER_KM) return { zone: best, status: 'nearshore' };
-  return { zone: null, status: 'outside' };
-}
+// Resolve a GPS coordinate to a zone (real ACJU zone polygons, lazy-loaded
+// on first "Locate Me"). Points within SEA_BUFFER_KM of the coast snap to
+// the nearest zone; beyond that we report "outside Sri Lanka".
+// { zone:'NN', status:'exact'|'nearshore' } or { zone:null, status:'outside' }
+const resolveZone = PT.resolveZone;
+const loadZoneGeo = PT.loadGeo;
 
 // ── Tiny toast (no markup needed) ──────────────────────────
 let _toastTimer = null;
@@ -231,7 +78,9 @@ function toast(msg) {
 }
 
 // ── Remembered zone (localStorage, best-effort) ────────────
-function saveZone(z) { try { localStorage.setItem(LS_ZONE, z); } catch {} }
+const saveZone = PT.setZone;
+// Not PT.getZone — that defaults to '01' when unset, which would break the
+// firstRun (never-chosen-before) check in init() below.
 function savedZone()  { try { return localStorage.getItem(LS_ZONE); } catch { return null; } }
 function markAsked()  { try { localStorage.setItem(LS_ASKED, '1'); } catch {} }
 function wasAsked()   { try { return localStorage.getItem(LS_ASKED) === '1'; } catch { return false; } }
@@ -259,44 +108,11 @@ function showLocatePrompt() {
 
 // ── Data fetching ─────────────────────────────────────────
 async function loadZones(){
-  return ZONES_INLINE; // inlined above — no fetch needed
+  return { zones: PT.ZONES }; // inlined in pt-core — no fetch needed
 }
-async function loadData(zone,month){
-  const k=`zone${String(zone).padStart(2,'0')}-${String(month).padStart(2,'0')}`;
-  const r=await fetch(`${DATA_BASE}/${k}.json`);
-  if(!r.ok) throw new Error(`No data: ${k}`);
-  return r.json();
-}
-
-function findTodayRow(data){
-  const t=new Date();
-  const s=`${t.getDate()}-${MON_SHORT[t.getMonth()+1]}`;
-  return data?.days?.find(d=>d.date===s)||null;
-}
-
-function prayerStatus(row) {
-  if (!row) return { current: null, next: 'fajr', isNextDay: true };
-  const now = new Date();
-  const times = PRAYERS.map(k => ({ key: k, t: parseTime(row[k]) }));
-  
-  let cur = null, nxt = null;
-  for (let i = 0; i < times.length; i++) {
-    if (times[i].t && now >= times[i].t) {
-      cur = times[i].key;
-      nxt = times[i + 1]?.key || null;
-    }
-  }
-
-  // If no prayers have happened yet today (before Fajr)
-  if (!cur) return { current: null, next: 'fajr', isNextDay: false };
-  
-  // After Isha: Next prayer is Fajr tomorrow
-  if (cur === 'isha' && !nxt) {
-    return { current: 'isha', next: 'fajr', isNextDay: true };
-  }
-
-  return { current: cur, next: nxt, isNextDay: false };
-}
+const loadData = PT.loadMonth;
+const findTodayRow = PT.todayRow;
+const prayerStatus = PT.status;
 
 // ── Header + Hero Date ─────────────────────────────────────
 function renderHeader(){
@@ -419,20 +235,8 @@ function renderImsakIftar(row){
 // ── Countdown ─────────────────────────────────────────────
 function renderCountdown(row, next, isNextDay) {
   const el = document.getElementById('hero-timer');
-  const t = parseTime(row?.[next]); 
-  if (!t || !el) return;
-
-  let diff = t - new Date();
-  
-  // CRITICAL: If the target is tomorrow, add 24 hours (86,400,000ms)
-  if (isNextDay) {
-    diff += 86400000;
-  }
-
-  const h = Math.floor(diff / 3600000);
-  const m = Math.floor((diff % 3600000) / 60000);
-  const s = Math.floor((diff % 60000) / 1000);
-  el.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+  if (!parseTime(row?.[next]) || !el) return;
+  el.textContent = PT.fmtHMS(PT.msUntil(row, next, isNextDay));
 }
 
 // ── Monthly table ──────────────────────────────────────────
@@ -584,17 +388,6 @@ function _goldBar(ctx, w, y) {
   g.addColorStop(1, '#B8892A');
   ctx.fillStyle = g;
   ctx.fillRect(0, y, w, 3);
-}
-
-// Hijri date for an arbitrary Date object (not just today)
-function hijriForDate(date) {
-  try {
-    const day  = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{day:'numeric'}).format(date);
-    const mon  = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{month:'numeric'}).format(date);
-    const year = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{year:'numeric'}).format(date)
-                   .replace(/\s*AH\s*$/i,'').trim();
-    return `${day} ${HIJ_MON[+mon-1] || ''} ${year} AH`;
-  } catch { return ''; }
 }
 
 function generateDayCanvas(data, row, displayYear) {
@@ -896,24 +689,9 @@ async function renderToday() {
     const row = findTodayRow(data);
     const status = prayerStatus(row);
 
-    // 2. Identify the Countdown Target
-    let countdownRow = row;
-    if (status.isNextDay) {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      
-      // Look for tomorrow's row in current data
-      let tRow = findRowByDate(data, tomorrow);
-      
-      // Rollover: If tomorrow is a new month, fetch the next file
-      if (!tRow) {
-        try {
-          const nextMonthData = await loadData(S.zone, tomorrow.getMonth() + 1);
-          tRow = findRowByDate(nextMonthData, tomorrow);
-        } catch (e) { console.error("Could not load next month data"); }
-      }
-      if (tRow) countdownRow = tRow;
-    }
+    // 2. Identify the Countdown Target (handles after-Isha rollover, incl.
+    //    across a month boundary — fetching next month's file if needed)
+    const { row: countdownRow } = await PT.nextTarget(S.zone, data, status);
 
     // 3. Render everything
     const tmrwRow = status.isNextDay ? countdownRow : null;
