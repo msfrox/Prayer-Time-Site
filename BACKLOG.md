@@ -1,5 +1,9 @@
 # Backlog
 
+> **2026-11-16:** the two picks below are now card **PT-4** in `TASKS.md` (how a pick is
+> promoted: `decisions/0002-…`), and Nallur is **PT-5**. Answer the picks in `SHEHAN-TODO.md`.
+> The tracker is `ROADMAP.md`.
+
 ## Pending
 
 - **Pick the winning LAYOUT direction** (added 2026-06-13, v7.1.0)
