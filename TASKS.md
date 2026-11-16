@@ -21,7 +21,7 @@ Do: make the workflow assemble a `_site/` folder from an explicit allowlist (`in
 live) and upload that. Keep the git-SHA injection into `sw.js` working. An allowlist, not a
 blocklist, so a new doc is private by default.
 Done when: the workflow file builds `_site/` from the allowlist; running the same copy steps
-locally gives a folder with no `.md` file except none at all, no `tests/`, no `build/`, no
+locally gives a folder with no `.md` file, no `tests/`, no `build/`, no
 `decisions/`, no `node_modules/`; `sw.js` in `_site/` has no `__GIT_SHA__` placeholder after
 the inject step; every path in `sw.js`'s cache list exists in `_site/`.
 Don't: merge to `main` yourself; Shehan merges. Don't drop `CNAME`.
