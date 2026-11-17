@@ -1,5 +1,6 @@
 /* ============================================================
    Sri Lanka Prayer Times — Shared Core Engine (pt-core.js)
+   VERSION 1.0.0 (PT.VERSION) — see assets/js/PT-CORE.md
    DOM-agnostic data + time logic for the experimental UIs in
    /labs.  Reuses the proven logic from the live site's app.js
    (parse, status, after-Isha rollover, Hijri) and adds
@@ -9,9 +10,13 @@
 (function (global) {
   'use strict';
 
-  const DATA_BASE = './data';
+  const VERSION = '1.0.0';
+  let DATA_BASE = './data';
 
   // ── Zone list (inlined — no extra request) ──────────────
+  // GENERATED BLOCK: copied from data/zones.json, which is the only zone list.
+  // Do not edit by hand; `node build/sync-zones.js` rewrites it and a test compares it.
+  // <generated:zones>
   const ZONES = [
     { id:'01', name:'Zone 01', districts:['Colombo','Gampaha','Kalutara'] },
     { id:'02', name:'Zone 02', districts:['Jaffna','Nallur'] },
@@ -27,6 +32,7 @@
     { id:'12', name:'Zone 12', districts:['Galle','Matara'] },
     { id:'13', name:'Zone 13', districts:['Hambantota'] },
   ];
+  // </generated:zones>
 
   // Approx centroids (representative town) — used for Qibla when no GPS.
   const ZONE_CENTROID = {
@@ -199,7 +205,7 @@
   function districtsLabel(id) { return zoneById(id).districts.join(' • '); }
 
   // ── Geofencing (point-in-polygon, copied from app.js) ───
-  const ZONES_GEO_URL = `${DATA_BASE}/zones.geojson`;
+  const zonesGeoUrl = () => `${DATA_BASE}/zones.geojson`;
   const SEA_BUFFER_KM = 8;
   let _geo = null;
 
@@ -242,7 +248,7 @@
   }
   async function loadGeo() {
     if (_geo) return _geo;
-    const r = await fetch(ZONES_GEO_URL);
+    const r = await fetch(zonesGeoUrl());
     if (!r.ok) throw new Error('zones.geojson failed');
     _geo = (await r.json()).features;
     return _geo;
@@ -322,8 +328,21 @@
     ].join('\n');
   }
 
+  // Let a consumer point the engine at its own copy of the data folder.
+  // Month data already loaded is kept; geometry is re-fetched from the new base.
+  function configure(opts) {
+    if (opts && typeof opts.dataBase === 'string') {
+      DATA_BASE = opts.dataBase.replace(/\/+$/, '');
+      for (const k of Object.keys(_cache)) delete _cache[k];
+      _geo = null;
+      global.PT.DATA_BASE = DATA_BASE;
+    }
+    return global.PT;
+  }
+
   // ── Public API ──────────────────────────────────────────
   global.PT = {
+    VERSION, configure,
     DATA_BASE, ZONES, ZONE_CENTROID,
     PRAYERS, SALAH, P_LABEL, P_ICON,
     MON_FULL, MON_SHORT, WDAY_S, WDAY_F, IDAY_F, HIJ_MON,
