@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0a1430" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌄</text></svg>" />
 <style>
-  @font-face{font-family:'Plus Jakarta Sans';font-weight:400 800;font-display:swap;src:url('assets/fonts/plus-jakarta-sans.woff2') format('woff2');}
+  @font-face{font-family:'Plus Jakarta Sans';font-weight:400 800;font-display:swap;src:url('../assets/fonts/plus-jakarta-sans.woff2') format('woff2');}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   :root{ --font:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
     --sky-a:#0a1430; --sky-b:#1b2a5e; --glow:#ffd27a; --ink:#fff; --soft:rgba(255,255,255,.78); --faint:rgba(255,255,255,.5);
@@ -101,13 +101,14 @@
     <div class="sheet-foot">
       The sky shifts through dawn, day, dusk &amp; night using today's real sun times.<br>
       Data: <a href="https://www.acju.lk/prayer-times/" target="_blank" rel="noopener">ACJU official</a> ·
-      <a href="labs.html">All experiments</a> · <a href="./">Live site</a>
+      <a href="labs.html">All experiments</a> · <a href="../">Live site</a>
     </div>
   </div>
 
   <div class="toast" id="toast"></div>
 
-<script src="assets/js/pt-core.js"></script>
+<script src="../assets/js/pt-core.js"></script>
+<script>PT.configure({dataBase:"../data"});</script>
 <script>
 (function(){
   const $=id=>document.getElementById(id);

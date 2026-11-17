@@ -7,11 +7,8 @@ cd "$(dirname "$0")/.."
 OUT="${1:-_site}"
 
 ALLOW=(
-  index.html manifest.json sw.js CNAME
-  labs.html designs.html
-  ui-ambient.html ui-bento.html ui-journey.html ui-orbit.html ui-stories.html
-  design-1.html design-2.html design-3.html design-4.html design-5.html
-  assets data
+  index.html classic.html manifest.json sw.js CNAME
+  assets data   # archive/ is deliberately NOT listed (ADR 0002)
 )
 
 rm -rf "$OUT"

@@ -20,36 +20,36 @@
 /* ── Design Tokens ─────────────────────────────────────── */
 :root {
   /* Page background */
-  --bg:          #F4F1EC;   /* warm parchment */
+  --bg:          #FBFAF7;   /* Daylight: warm white */
   --bg-card:     #FFFFFF;
-  --bg-subtle:   #FAFAF7;
+  --bg-subtle:   #F5F3EE;
 
   /* Dark tones — charcoal replaces olive */
   --olive-900:   #1A1A1A;   /* near-black */
   --olive-800:   #262626;   /* charcoal header / hero */
-  --olive-700:   #58655a;   /* sage green — primary accent */
+  --olive-700:   #1F5F4E;   /* Daylight deep green — primary accent */
   --olive-600:   #6B7D70;   /* lighter sage */
   --olive-500:   #8A9E8E;   /* muted sage */
   --olive-200:   #C5D6C8;   /* pale sage */
   --olive-100:   #E6EEE8;   /* very pale sage */
 
   /* Gold */
-  --gold-500:    #B8892A;
-  --gold-400:    #CFA344;
-  --gold-200:    #E8C97A;
-  --gold-100:    #F5E8C0;
+  --gold-500:    #B34A22;   /* Daylight terracotta (darker step, AA on white) */
+  --gold-400:    #C2552B;
+  --gold-200:    #E9B49E;
+  --gold-100:    #F7E3D9;
   /* Darker gold for accessible text-on-light-gold and text-on-white use (AA, 4.5:1+) */
-  --gold-700:    #7A5A1B;
+  --gold-700:    #7A2F10;
   /* olive-700 used as FOREGROUND text/border on a card surface — separate from its use as a
      background (today-chip, share-img button), which stays --olive-700 in both themes. This
      one flips to a lighter sage in dark mode so the same text keeps AA contrast either way. */
   --olive-text:  var(--olive-700);
 
   /* Ink */
-  --ink-900:     #1A1A1A;
-  --ink-600:     #4A4840;
+  --ink-900:     #181613;
+  --ink-600:     #46423B;
   /* AA-contrast (4.5:1+) muted text on the site's near-white surfaces */
-  --ink-400:     #6B6860;
+  --ink-400:     #6E6A62;
   --ink-200:     #C0BEB8;
   --ink-100:     #E8E6E0;
   --ink-50:      #F0EEE8;
@@ -1293,18 +1293,20 @@ body {
    will look flat on a dark card — cosmetic only, not an a11y regression. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg:        #17171B;
-    --bg-card:   #211F1B;
-    --bg-subtle: #1B1A16;
+    --bg:        #14120F;
+    --bg-card:   #1E1B17;
+    --bg-subtle: #181612;
 
-    --ink-900: #F4F1EC;
-    --ink-600: #D8D4CC;
-    --ink-400: #9C978C; /* 6.1:1 on --bg, 5.7:1 on --bg-card */
-    --ink-200: #4A473E;
-    --ink-100: #38362E;
-    --ink-50:  #262419;
+    --ink-900: #F4F0E8;
+    --ink-600: #D6D1C7;
+    --ink-400: #A8A298;
+    --ink-200: #4A463E;
+    --ink-100: #38352E;
+    --ink-50:  #26231D;
 
-    --olive-text: #9BB09E; /* 7.1:1 on --bg-card, vs. 2.7:1 for --olive-700 */
+    --olive-text: #6FB59F;
+    --gold-400:    #E8845C; /* Daylight terracotta, lifted for dark */
+    --gold-500:    #E8845C;
   }
 
   .prayer-list-panel {

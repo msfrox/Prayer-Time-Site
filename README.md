@@ -210,10 +210,13 @@ testing. See `tests/README.md` for how the tests work and what they cover.
 
 | Asset | Raw | Transferred |
 |-------|-----|-------------|
-| HTML | 13 KB | 4.7 KB |
-| style.css | 33 KB | 7.5 KB |
-| app.js | 37 KB | 10.8 KB |
-| pt-core.js | 15 KB | 5.4 KB |
+| index.html | 11 KB | ~4 KB |
+| style.css | 37 KB | ~8 KB |
+| ambient.css | 6 KB | ~2 KB |
+| app.js | 39 KB | ~11 KB |
+| ambient.js | 4 KB | ~1.5 KB |
+| pt-core.js | 16 KB | ~5.5 KB |
+| **Total, cold load, excl. fonts** | **~113 KB** | **~34 KB** |
 | zones.json (JS fetch) | ~2 KB | ~1 KB |
 | zoneNN-MM.json (JS fetch) | ~4 KB | ~2 KB |
 | Google Fonts (5 woff2) | ~60 KB | ~60 KB |
@@ -352,6 +355,7 @@ is replaced at deploy time; the file in the repo always shows the placeholder.
 
 | Version | What changed |
 |---------|-------------|
+| **v9.0.0** | *Ambient view (preview for Shehan's look).* `index.html` is now the Ambient layout: a sky that follows the sun, the next prayer and countdown on the stage, and a pull-up sheet holding every feature of the old page (all 13 zones, Locate Me, month table, high-rise table, sharing, deep links). Daylight palette (light) with a derived dark partner, as tokens in `style.css`; contrast checked by `build/contrast-check.js`. The previous page stays at `classic.html` (own `classic.css`) until the new one is approved. The five layout and five palette previews moved to `archive/` (not deployed). New `ambient.css` / `ambient.js`. |
 | **v8.0.0** | *Stop the drift.* `app.js` now consumes `assets/js/pt-core.js` as the single source of truth instead of carrying its own copy of the parsing/status/geofencing/Hijri logic — the two had drifted since `pt-core.js` was introduced in v7.1.0, so a fix or improvement made in one no longer silently misses the other. `app.js` shrank ~20% (46.6 KB → 37.4 KB); total JS payload for the live page grew slightly (`pt-core.js` also carries Qibla/labs-only helpers `app.js` doesn't use) — see "Performance characteristics". Behaviour-preserving: verified identical computed times across all 13 zones, the Dec 31 → Jan 1 month boundary, and both solstices, before and after. No user-visible change. |
 | **v7.1.0** | *Labs — 5 ground-up UI experiments.* New `labs.html` gallery linking five standalone, fully-working redesigns that each present the ACJU data a different way: **Orbit** (`ui-orbit.html`, 24-hour radial dial + sun arc + Qibla), **Journey** (`ui-journey.html`, vertical day timeline + day-progress), **Stories** (`ui-stories.html`, swipeable 7-day cards), **Bento** (`ui-bento.html`, dashboard: countdown, Qibla compass w/ live heading, prayer checklist + ring, month heatmap), **Ambient** (`ui-ambient.html`, immersive sky that shifts dawn→day→dusk→night by real sun times). All share a new DOM-agnostic engine `assets/js/pt-core.js` (reuses app.js logic + adds geofencing & Qibla bearing). Footer of the live site now links Labs + the colour themes. Previews only — live experience unchanged. |
 | **v7.0.0** | *Design concepts.* Added 5 fully-working design previews (`design-1.html`…`design-5.html`: Daylight, Midnight, Heritage, Dawn, Bold) sharing the live site's `app.js` + data via a token-driven base stylesheet (`assets/css/designs-base.css` + `designN.css`). New `designs.html` selection page with preview cards and a link to the live site; footer link on the live site invites users to preview and vote. |

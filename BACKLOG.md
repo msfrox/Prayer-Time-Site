@@ -6,6 +6,10 @@
 
 ## Pending
 
+> **2026-11-17:** layout (Ambient, current features in the pull-up) and palette (Daylight + dark)
+> were answered by Shehan and built as v9.0.0 for his look; the other previews are in
+> `archive/`. Open until he approves: ship it, or tweak. `classic.html` is the old page.
+
 - **Pick the winning LAYOUT direction** (added 2026-06-13, v7.1.0)
   Five ground-up UI experiments are live at `labs.html`: `ui-orbit.html` (radial dial),
   `ui-journey.html` (timeline), `ui-stories.html` (swipe week), `ui-bento.html`

@@ -80,8 +80,8 @@ pages still load data (check each file still references the same global and path
 Don't: change any function's behaviour or signature. Don't convert to ES modules: every page
 loads it with a plain `<script>` tag.
 
-### PT-4 — Promote the picked layout and palette          [Sonnet] · effort medium · ~3 h
-**BLOCKED on Shehan: Q12 (layout) and Q13 (palette) in SHEHAN-TODO.md.**
+### PT-4 — Promote the picked layout and palette ✅ (built 2026-11-17 as a preview; Shehan to look)  [Sonnet] · effort medium · ~3 h
+Unblocked 2026-11-17: Ambient layout with the current features in the pull-up, Daylight + derived dark.
 Why: closes the two picks open since June (ADR 0002).
 Context to read: `decisions/0002-…` (the feature list in point 1 is the acceptance test),
 `BACKLOG.md`, the picked `ui-*.html`, `assets/css/designs-base.css` + the picked

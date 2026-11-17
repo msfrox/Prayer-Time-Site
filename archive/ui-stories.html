@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#120E1C" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>" />
 <style>
-  @font-face{font-family:'Plus Jakarta Sans';font-weight:400 800;font-display:swap;src:url('assets/fonts/plus-jakarta-sans.woff2') format('woff2');}
+  @font-face{font-family:'Plus Jakarta Sans';font-weight:400 800;font-display:swap;src:url('../assets/fonts/plus-jakarta-sans.woff2') format('woff2');}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   :root{
     --bg:#120E1C; --ink:#F3EEFB; --muted:#A99FC4; --faint:#6E6488; --line:rgba(255,255,255,.12);
@@ -95,7 +95,8 @@
 
   <div class="toast" id="toast"></div>
 
-<script src="assets/js/pt-core.js"></script>
+<script src="../assets/js/pt-core.js"></script>
+<script>PT.configure({dataBase:"../data"});</script>
 <script>
 (function(){
   const $=id=>document.getElementById(id);

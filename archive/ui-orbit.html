@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#070A18" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪐</text></svg>" />
 <style>
-  @font-face{font-family:'Plus Jakarta Sans';font-weight:400 800;font-display:swap;src:url('assets/fonts/plus-jakarta-sans.woff2') format('woff2');}
+  @font-face{font-family:'Plus Jakarta Sans';font-weight:400 800;font-display:swap;src:url('../assets/fonts/plus-jakarta-sans.woff2') format('woff2');}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   :root{
     --bg:#070A18; --bg2:#0C1226; --ink:#EAEDFF; --muted:#8B93B8; --faint:#535B82;
@@ -152,13 +152,14 @@
     <p class="foot">
       Midnight at top · clockwise through 24 hours. Tap a prayer to inspect it.<br>
       Data: <a href="https://www.acju.lk/prayer-times/" target="_blank" rel="noopener">ACJU official</a> ·
-      <a href="labs.html">All experiments</a> · <a href="./">Live site</a>
+      <a href="labs.html">All experiments</a> · <a href="../">Live site</a>
     </p>
   </div>
 
   <div class="toast" id="toast"></div>
 
-<script src="assets/js/pt-core.js"></script>
+<script src="../assets/js/pt-core.js"></script>
+<script>PT.configure({dataBase:"../data"});</script>
 <script>
 (function(){
   const CX=160, CY=160, R=120;

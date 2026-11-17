@@ -11,7 +11,7 @@
 // MINOR for improvements / bug fixes, MAJOR for new features or redesigns.
 // Update README version history when you bump.
 // Shown in the footer so users + reports can identify the build.
-const SITE_VERSION = '8.0.0';
+const SITE_VERSION = '9.0.0';
 
 // ── Constants pulled from PT (pt-core.js) — kept as local names
 // so the render code below didn't need to change call sites.

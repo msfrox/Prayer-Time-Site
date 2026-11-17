@@ -1,6 +1,6 @@
 # 0002 — One layout and one palette pair ship; the previews are archived
 
-- **Status:** proposed — pending Shehan's answers (fable-sprint `S15-PLAN.md`, Q12, Q13, Q14)
+- **Status:** accepted with a condition, 2026-11-17. Shehan's answers (`SHEHAN-TODO.md`): layout = "a version of Ambient with the current features in the pull up"; palette = Daylight with a matching dark; previews to `archive/`. He asked to *see* it, so v9.0.0 is built as a preview and `classic.html` keeps the old page until he approves.
 - **Date:** 2026-11-16
 
 ## Context

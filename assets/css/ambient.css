@@ -1,0 +1,70 @@
+/* ============================================================
+   Ambient view (v9). Stage = sky + next prayer. Sheet = everything else, on Daylight
+   surfaces (tokens live in style.css; dark partner follows the phone's setting).
+   Loaded after style.css.
+   ============================================================ */
+html { background: #0a1430; }
+body { height: 100vh; height: 100dvh; overflow: hidden; background: transparent; position: relative; }
+
+/* ── sky ── */
+.sky { position: fixed; inset: 0; z-index: 0; transition: background 2.5s ease;
+  background: linear-gradient(180deg, var(--sky-a, #070C1F) 0%, var(--sky-b, #0E1638) 60%, var(--sky-c, #1A2350) 100%); }
+.celest { position: fixed; z-index: 1; font-size: 64px; left: 50%; top: 22%; transform: translateX(-50%);
+  transition: all 2.5s ease; filter: drop-shadow(0 0 30px var(--glow, #9fb6ff)); pointer-events: none; }
+.ground { position: fixed; left: 0; right: 0; bottom: 0; height: 24vh; z-index: 1; pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,.5)); }
+.stars { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: var(--star, 1); transition: opacity 2.5s;
+  background-image: radial-gradient(1.4px 1.4px at 15% 20%,#fff,transparent), radial-gradient(1.4px 1.4px at 75% 15%,#fff,transparent),
+    radial-gradient(1px 1px at 40% 30%,#fff,transparent), radial-gradient(1.6px 1.6px at 88% 45%,#fff,transparent),
+    radial-gradient(1px 1px at 55% 55%,#fff,transparent), radial-gradient(1.3px 1.3px at 25% 65%,#fff,transparent),
+    radial-gradient(1px 1px at 65% 78%,#fff,transparent), radial-gradient(1.5px 1.5px at 10% 85%,#fff,transparent); }
+
+/* ── stage ── */
+.stage { position: relative; z-index: 3; height: 100%; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center; padding: 18px 18px 90px; cursor: pointer; color: #fff; }
+.stage .phase { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .22em; color: #fff; margin-bottom: 6px; text-shadow: 0 1px 10px rgba(0,0,0,.5); }
+.stage .zone { font-size: 13px; color: #fff; margin-top: 4px; text-shadow: 0 1px 10px rgba(0,0,0,.5); }
+.stage .badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; border: 1px solid rgba(255,255,255,.6); margin-left: 4px; }
+.stage .next-lbl { font-size: 13px; font-weight: 700; color: #fff; margin-top: 30px; letter-spacing: .04em; text-shadow: 0 1px 10px rgba(0,0,0,.5); }
+.stage .next-name { font-size: clamp(46px, 16vw, 92px); font-weight: 800; letter-spacing: -.03em; line-height: .98; text-shadow: 0 4px 40px rgba(0,0,0,.5); }
+.stage .count { font-size: clamp(30px, 9vw, 46px); font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 8px; text-shadow: 0 2px 24px rgba(0,0,0,.5); }
+.stage .at { font-size: 14px; color: #fff; margin-top: 4px; text-shadow: 0 1px 10px rgba(0,0,0,.5); }
+.pull { position: fixed; bottom: calc(18px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 4;
+  background: rgba(0,0,0,.35); color: #fff; border: 1px solid rgba(255,255,255,.35); border-radius: 99px; padding: 8px 18px 8px 14px;
+  font: 700 12px var(--sans); cursor: pointer; display: flex; align-items: center; gap: 10px; white-space: nowrap; max-width: calc(100vw - 24px); }
+.pull-grip { width: 26px; height: 4px; border-radius: 99px; background: rgba(255,255,255,.8); flex: none; }
+body.sheet-open .pull { opacity: 0; pointer-events: none; }
+
+/* ── sheet ── */
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 8; max-height: 90vh; max-height: 90dvh; overflow-y: auto;
+  background: var(--bg); color: var(--ink-900); border-radius: 26px 26px 0 0; border-top: 1px solid var(--ink-100);
+  box-shadow: 0 -12px 48px rgba(0,0,0,.35); padding: 0 0 calc(18px + env(safe-area-inset-bottom));
+  transform: translateY(105%); visibility: hidden; transition: transform .4s cubic-bezier(.22,1,.36,1), visibility 0s linear .4s;
+  max-width: 1100px; margin: 0 auto; overscroll-behavior: contain; outline: none; }
+.sheet.open { transform: translateY(0); visibility: visible; transition-delay: 0s; }
+.grip { display: block; width: 100%; background: none; border: 0; padding: 12px 0 6px; cursor: pointer; position: sticky; top: 0; z-index: 2;
+  background: var(--bg); }
+.grip span { display: block; width: 42px; height: 5px; border-radius: 99px; background: var(--ink-400); margin: 0 auto; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 4px 18px 10px; }
+.sheet-logo { display: flex; align-items: center; gap: 8px; color: var(--ink-900); text-decoration: none; font-weight: 800; font-size: 15px; }
+.sheet-date { text-align: right; font-size: 12px; color: var(--ink-600); font-weight: 600; }
+.sheet-controls { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 18px 12px; align-items: center; }
+.sheet .sel-group { background: var(--bg-card); border: 1px solid var(--ink-200); flex: 1 1 140px; }
+.sheet .sel-group:focus-within { border-color: var(--olive-700); background: var(--bg-card); }
+.sheet .sel-label { color: var(--ink-400); }
+.sheet .sel-group select { color: var(--ink-900); width: 100%; }
+.sheet .sel-group select option { background: var(--bg-card); color: var(--ink-900); }
+.sheet .btn-locate { width: auto; background: var(--olive-700); color: #fff; padding: 9px 16px; }
+.sheet .main-content { padding: 0 14px 8px; }
+.sheet .prayers-pullup { margin-top: 0; }
+.sheet .prayer-list-panel, .sheet .imsak-strip { background: var(--bg-card); border-color: var(--ink-100); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.sheet-footer { background: transparent; color: var(--ink-400); text-align: center; padding: 8px 18px 4px; font-size: 11px; line-height: 1.7; }
+.sheet-footer a { color: var(--olive-text); text-decoration: underline; font-weight: 600; }
+.sheet-footer p[style*="font-size:12px"] a { color: var(--olive-text) !important; }
+
+/* location soft-ask and toast sit above everything */
+.locate-prompt, .toast { z-index: 40; }
+
+@media (min-width: 900px) { .sheet { left: 50%; right: auto; width: 1000px; transform: translate(-50%, 105%); }
+  .sheet.open { transform: translate(-50%, 0); } }
+@media (prefers-reduced-motion: reduce) { .sky, .celest, .stars, .sheet { transition: none; } }

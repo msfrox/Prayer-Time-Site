@@ -1,6 +1,6 @@
 # 0001 — One prayer-times source: the published ACJU files, made a contract
 
-- **Status:** proposed — pending Shehan's answers (fable-sprint `S15-PLAN.md`, Q10 and Q11)
+- **Status:** accepted 2026-11-17 — Shehan answered "ok" in `SHEHAN-TODO.md` (S15 Q10, Q11)
 - **Date:** 2026-11-16
 - **Applies to:** Prayer-Time-Site (the home of the data), Salah-board, Brilliant's prayer
   popout (`brilliant-bar/bin/brilliant-prayer-fetch`), and any later faith app.

@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0E1512" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛤️</text></svg>" />
 <style>
-  @font-face{font-family:'Plus Jakarta Sans';font-weight:400 800;font-display:swap;src:url('assets/fonts/plus-jakarta-sans.woff2') format('woff2');}
+  @font-face{font-family:'Plus Jakarta Sans';font-weight:400 800;font-display:swap;src:url('../assets/fonts/plus-jakarta-sans.woff2') format('woff2');}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   :root{
     --bg:#0E1512; --card:#152019; --ink:#ECF3EE; --muted:#8FA398; --faint:#5C6E64;
@@ -128,13 +128,14 @@
     <p class="foot">
       Your day, top to bottom. The line fills as time passes.<br>
       Data: <a href="https://www.acju.lk/prayer-times/" target="_blank" rel="noopener">ACJU official</a> ·
-      <a href="labs.html">All experiments</a> · <a href="./">Live site</a>
+      <a href="labs.html">All experiments</a> · <a href="../">Live site</a>
     </p>
   </div>
 
   <div class="toast" id="toast"></div>
 
-<script src="assets/js/pt-core.js"></script>
+<script src="../assets/js/pt-core.js"></script>
+<script>PT.configure({dataBase:"../data"});</script>
 <script>
 (function(){
   const $=id=>document.getElementById(id);

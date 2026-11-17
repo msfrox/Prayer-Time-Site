@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0B0D10" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍱</text></svg>" />
 <style>
-  @font-face{font-family:'Plus Jakarta Sans';font-weight:400 800;font-display:swap;src:url('assets/fonts/plus-jakarta-sans.woff2') format('woff2');}
+  @font-face{font-family:'Plus Jakarta Sans';font-weight:400 800;font-display:swap;src:url('../assets/fonts/plus-jakarta-sans.woff2') format('woff2');}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   :root{
     --bg:#0B0D10; --tile:#15181E; --tile2:#1B1F27; --ink:#EDEFF2; --muted:#9098A6; --faint:#5B636F;
@@ -180,13 +180,14 @@
 
     <p class="foot">
       A glanceable dashboard. Qibla is computed for your district; tap “Use live compass” on a phone for true heading.<br>
-      Data: <a href="https://www.acju.lk/prayer-times/" target="_blank" rel="noopener">ACJU official</a> · <a href="labs.html">All experiments</a> · <a href="./">Live site</a>
+      Data: <a href="https://www.acju.lk/prayer-times/" target="_blank" rel="noopener">ACJU official</a> · <a href="labs.html">All experiments</a> · <a href="../">Live site</a>
     </p>
   </div>
 
   <div class="toast" id="toast"></div>
 
-<script src="assets/js/pt-core.js"></script>
+<script src="../assets/js/pt-core.js"></script>
+<script>PT.configure({dataBase:"../data"});</script>
 <script>
 (function(){
   const $=id=>document.getElementById(id);
