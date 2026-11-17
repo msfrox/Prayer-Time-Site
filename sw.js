@@ -55,6 +55,7 @@ self.addEventListener('fetch', event => {
 
   // Zone data files → stale-while-revalidate
   // (serve instantly from cache, refresh in background so next load is fresh)
+  // (includes /data/manifest.json — the data contract manifest is data, not shell)
   if (url.pathname.startsWith('/data/')) {
     event.respondWith(staleWhileRevalidate(DATA_CACHE, event.request));
     return;

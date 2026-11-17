@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Zone list (data/zones.json)",
+  "type": "object",
+  "required": ["zones"],
+  "properties": {
+    "zones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "districts"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^\\d{2}$" },
+          "name": { "type": "string" },
+          "districts": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

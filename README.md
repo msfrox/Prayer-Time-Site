@@ -265,9 +265,17 @@ Each `zoneNN-MM.json` has this structure:
 }
 ```
 
-To update for a new year: replace the 156 JSON files in `data/` with fresh values
-from the new ACJU PDF. The `year` field in each file is metadata only; the app always
-uses the current calendar year for display.
+### How to change the data
+
+`data/manifest.json` is the contract other apps sync from (`data/SCHEMA.md` describes it).
+A change to a table value is a reviewed change:
+
+1. Edit the zone file(s) from the ACJU PDF. Do not reformat or re-order anything else:
+   Salah-board holds byte-identical copies and compares checksums.
+2. `npm test` (the manifest test fails until step 3 is done).
+3. `npm run manifest -- --revision YYYY-MM-DD.N --revised YYYY-MM-DD` (and
+   `--edition "..."` if the PDF edition is new). Bump `revision` whenever a value changes.
+4. Commit with the reason (which ACJU edition, or which correction).
 
 ---
 

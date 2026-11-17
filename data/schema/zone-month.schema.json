@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "One zone, one month (data/zoneNN-MM.json)",
+  "type": "object",
+  "required": ["zone", "monthName", "monthNum", "year", "districts", "zoneName", "days", "apartmentDiff", "source"],
+  "properties": {
+    "zone": { "type": "string", "pattern": "^\\d{2}$" },
+    "monthName": { "type": "string" },
+    "monthNum": { "type": "integer", "minimum": 1, "maximum": 12 },
+    "year": { "type": "integer", "description": "Compilation metadata only; times repeat every year." },
+    "districts": { "type": "array", "items": { "type": "string" } },
+    "zoneName": { "type": "string" },
+    "days": {
+      "type": "array",
+      "minItems": 28,
+      "maxItems": 31,
+      "items": {
+        "type": "object",
+        "required": ["date", "fajr", "sunrise", "luhr", "asr", "magrib", "isha"],
+        "properties": {
+          "date": { "type": "string", "pattern": "^\\d{1,2}-[A-Z][a-z]{2}$", "description": "e.g. 1-Jan" },
+          "fajr": { "$ref": "#/$defs/time" },
+          "sunrise": { "$ref": "#/$defs/time" },
+          "luhr": { "$ref": "#/$defs/time" },
+          "asr": { "$ref": "#/$defs/time" },
+          "magrib": { "$ref": "#/$defs/time" },
+          "isha": { "$ref": "#/$defs/time" }
+        }
+      }
+    },
+    "apartmentDiff": {
+      "type": "object",
+      "required": ["lowRise", "highRise"],
+      "properties": {
+        "lowRise": { "$ref": "#/$defs/rise" },
+        "highRise": { "$ref": "#/$defs/rise" }
+      }
+    },
+    "note": { "type": "string" },
+    "attribution": { "type": "string" },
+    "source": { "type": "string" },
+    "sourceUrl": { "type": "string" },
+    "sourcePhone": { "type": "string" },
+    "sourceEmail": { "type": "string" }
+  },
+  "$defs": {
+    "time": { "type": "string", "pattern": "^(1[0-2]|[1-9]):[0-5]\\d (AM|PM)$", "description": "12-hour, Sri Lanka time" },
+    "rise": {
+      "type": "object",
+      "required": ["stories", "heightM", "fajr", "sunrise", "magrib", "isha"],
+      "properties": {
+        "stories": { "type": "string" },
+        "heightM": { "type": "string" },
+        "fajr": { "type": "integer" },
+        "sunrise": { "type": "integer" },
+        "magrib": { "type": "integer" },
+        "isha": { "type": "integer" }
+      }
+    }
+  }
+}
