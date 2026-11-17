@@ -11,7 +11,7 @@ commits; work on a branch, because **a push to `main` deploys to pray.gear.lk**.
 
 ---
 
-### PT-0 — Deploy only the site, not the repo            [Sonnet] · effort medium · ~30 min
+### PT-0 — Deploy only the site, not the repo ✅            [Sonnet] · effort medium · ~30 min
 Why: `.github/workflows/pages.yml` uploads the whole repo root (`path: '.'`), so `BACKLOG.md`,
 `TASKS.md`, `HANDOFF.md`, `SHEHAN-TODO.md`, `decisions/`, `tests/` and `build/` are all served
 publicly at pray.gear.lk the moment they reach `main`.
@@ -26,7 +26,7 @@ locally gives a folder with no `.md` file, no `tests/`, no `build/`, no
 the inject step; every path in `sw.js`'s cache list exists in `_site/`.
 Don't: merge to `main` yourself; Shehan merges. Don't drop `CNAME`.
 
-### PT-1 — The data contract: manifest and schema        [Sonnet] · effort medium · ~1.5 h
+### PT-1 — The data contract: manifest and schema ✅        [Sonnet] · effort medium · ~1.5 h
 Why: consumers need to know whether their copy of the timetable is current (ADR 0001).
 Context to read: `decisions/0001-…`, README "Updating prayer-time data", `data/zones.json`,
 one `data/zoneNN-MM.json`, `tests/README.md`.
@@ -46,7 +46,7 @@ file; `data/manifest.json` lists 158 files (156 zone files, `zones.json`, `zones
 Don't: rename or reformat any existing data file (the checksums are the point, and Salah-board
 has byte-identical copies today). Don't add a build step to the site.
 
-### PT-2 — Validate the timetable itself                 [Sonnet] · effort medium · ~1.5 h
+### PT-2 — Validate the timetable itself ✅                 [Sonnet] · effort medium · ~1.5 h
 Why: the tables were typed in by hand from a PDF. A wrong minute is invisible until someone
 prays by it. Nothing checks the values today (`build/validate.js` checks zone polygons only).
 Context to read: `decisions/0001-…` point 5, one zone file, `tests/`.
@@ -62,7 +62,7 @@ Don't: "fix" a value the suite flags. ACJU's PDF is the source; a flagged value 
 `BUGS.md` and `SHEHAN-TODO.md` for Shehan to check against the PDF. If the suite finds more
 than about 20 problems, stop and report: the 2-minute rule is probably wrong, not the data.
 
-### PT-3 — One zone list, and a versioned engine         [Sonnet] · effort medium · ~1 h
+### PT-3 — One zone list, and a versioned engine ✅         [Sonnet] · effort medium · ~1 h
 Why: `assets/js/pt-core.js` inlines its own zone list, which already words zones 08 and 10
 differently from `data/zones.json`; and Salah-board needs to vendor the engine unmodified
 (ADR 0001, Salah-board ADR 0002).

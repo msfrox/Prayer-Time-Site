@@ -2,46 +2,31 @@
 
 _Replace this file at the end of every session; git history keeps the old versions._
 
-## Current state (2026-11-16 — planned, nothing built)
+## Current state (2026-11-17 — PT-0 to PT-3 built on `build/pt-0-3`, not merged)
 
-- Live: **v8.0.0** at pray.gear.lk (GitHub Pages; a push to `main` deploys).
-- A planning session (fable-sprint S15) wrote the plan into `ROADMAP.md`, `TASKS.md` and two
-  ADRs in `decisions/`, on branch `away/2026-11/s15-plan`. **Both ADRs are "proposed":**
-  they were written on defaults while Shehan was away. No site file was changed.
-- The plan makes this repo the single source of prayer-time data for Salah-board and
-  Brilliant (ADR 0001), and sets out how the layout and palette pick is promoted (ADR 0002).
+- Live site is still **v8.0.0**; nothing was pushed. Branch `build/pt-0-3` is cut from local `main`.
+- **PT-0** `5772c2a` workflow builds `_site/` via `build/make-site.sh` (allowlist).
+- **PT-1** `d4ad84d` `data/manifest.json` (163 files incl. schema docs), `data/SCHEMA.md`,
+  `data/schema/*.schema.json`, `build/make-manifest.js`, `npm run manifest`, manifest test.
+- **PT-2** `85da9e6` `tests/timetable.test.js`; one flagged value in `BUGS.md`.
+- **PT-3** `b1ff42c` `PT.VERSION` 1.0.0, `PT.configure({dataBase})`, generated ZONES block +
+  test, `assets/js/PT-CORE.md`, `build/sync-zones.js`.
+- `npm test`: 87 passing. PT-4, PT-5 not started (no answers in `SHEHAN-TODO.md`).
 
 ## Resume
 
-**Model: Sonnet 5.5. Effort: medium.**
-First card: **PT-0**, then PT-1, PT-2, PT-3 in order (`TASKS.md`). All four are ready and
-independent of Shehan's answers. Work on a branch from `main`; do not merge.
-PT-4 and PT-5 are blocked: check `SHEHAN-TODO.md` for answers before starting either.
-
-Continue prompt:
-
-```text
-Continue Prayer-Time-Site according to /project-playbook — read ROADMAP.md and HANDOFF.md in ~/Projects/Prayer-Time-Site, then do
-cards PT-0 to PT-3 from TASKS.md in order. Check SHEHAN-TODO.md first for answers that unblock PT-4.
-Delegate implementation from task cards to Sonnet agents and sweeps to Haiku Explore agents.
-Model: sonnet · Effort: medium — set both before sending.
-
-Context you won't get from the files: a push to main deploys the live site, so stay on a branch; Salah-board holds byte-identical copies of data/, so do not reformat any data file.
-```
-
-## In flight
-
-Nothing.
-
-## Waiting on Shehan
-
-See `SHEHAN-TODO.md`: the layout pick, the palette pick, what happens to the unpicked
-previews, the email to ACJU about Nallur, and confirming ADR 0001.
+Shehan: preview with `bash build/make-site.sh /tmp/site && python3 -m http.server -d /tmp/site 8000`,
+check, then merge `build/pt-0-3` to `main` (that deploys).
+Next cards: PT-4 (needs layout + palette picks), PT-5 (needs ACJU's Nallur answer).
 
 ## Gotchas
 
-- **The Pages workflow publishes the whole repo root.** Until PT-0 lands, every Markdown file
-  merged to `main` is public at pray.gear.lk. PT-0 goes first for that reason.
-- `tests/` is vitest and dev-only; the site itself has no build step and must stay that way.
-- `.github/workflows/sync-docs.yml` mirrors selected docs to `msfrox/public-docs` on `main`.
-- This box cannot show a page. Anything visual is "not seen, needs Shehan's look".
+- `data/`, `assets/`, `assets/css`, `assets/js` are mode 555. To change data: `chmod u+w data`,
+  edit, `npm run manifest`, `chmod 555 data`. (data/ got new files this session: restored.)
+- The card said the inlined zone list differed from `zones.json` for zones 08 and 10; it did
+  not (identical at start). The new test keeps it so.
+- Card PT-1 said 158 files; the manifest lists 163 because it also lists `SCHEMA.md` and the
+  four schema files (ADR: "every file under data/"). Salah-board must copy those or ignore.
+- `make-site.sh` deletes all `*.md` from `_site/`, so PT-CORE.md and SCHEMA.md are not served.
+- `source.edition` in the manifest is "unknown — confirm with Shehan".
+- Zone 05 1-Apr asr is flagged in `BUGS.md`/`tests/known-issues.json`; remove the entry when fixed.

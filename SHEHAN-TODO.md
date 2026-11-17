@@ -32,4 +32,4 @@ ones that belong to this repo. A blank answer means the default stands.
 - [ ] **Which edition of the ACJU PDF** were the tables typed from (year or date on the PDF)?
   It goes in the manifest's `source.edition`.
 - [ ] **Merge to `main`** when a build branch is ready. That is the deploy.
-- [ ] After PT-2 runs: check any value it lists in `BUGS.md` against the ACJU PDF.
+- [ ] PT-2 ran: check the one value in `BUGS.md` (zone 05, 1 Apr, asr `3:20 PM`) against the ACJU PDF.
