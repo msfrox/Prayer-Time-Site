@@ -9,17 +9,17 @@ ones that belong to this repo. A blank answer means the default stands.
    Orbit, Journey, Stories, Bento, Ambient, or keep the current page.
    Recommended: **Journey** on top, with the current monthly table, sharing and high-rise
    sections kept below it. Unblocks card PT-4.
-   → 
+   → i like to see a version of ambiant with the current features in the pull up.
 2. **Palette (S15 Q13).** Open `https://pray.gear.lk/designs.html`. Pick one: Daylight,
    Midnight, Heritage, Dawn, Bold. Recommended: **Daylight** as light, with a matching dark.
    Unblocks card PT-4.
-   → 
+   → do that.
 3. **The previews you did not pick (S15 Q14).** Default: moved to `archive/`, not deployed,
    nothing deleted.
-   → 
+   → move to archive
 4. **One source for prayer times (S15 Q10, Q11).** Default: the published files with a
    manifest; ACJU only; no API. ADR 0001. Say "ok" to accept it.
-   → 
+   → ok
 
 ## Steps only you can do
 
