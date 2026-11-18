@@ -11,7 +11,7 @@ ALLOW=(
   labs.html designs.html
   ui-ambient.html ui-bento.html ui-journey.html ui-orbit.html ui-stories.html
   design-1.html design-2.html design-3.html design-4.html design-5.html
-  assets data
+  assets data labs
 )
 
 rm -rf "$OUT"

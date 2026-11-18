@@ -1,0 +1,1294 @@
+/* ============================================================
+   Sri Lanka Prayer Times — v4
+   Design: Groomify-inspired (warm ivory, sage green, heavy sans)
+   Fonts: Plus Jakarta Sans (Google Fonts)
+   ============================================================ */
+
+/* Self-hosted variable font — covers weights 400–800, Latin only (all the site needs).
+   One file, no external dependency, no DNS lookup, cached permanently by the browser. */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('../fonts/plus-jakarta-sans.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+                 U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+                 U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ── Design Tokens ─────────────────────────────────────── */
+:root {
+  /* Page background */
+  --bg:          #FBFAF7;   /* Daylight: warm white */
+  --bg-card:     #FFFFFF;
+  --bg-subtle:   #F5F3EE;
+
+  /* Dark tones — charcoal replaces olive */
+  --olive-900:   #1A1A1A;   /* near-black */
+  --olive-800:   #262626;   /* charcoal header / hero */
+  --olive-700:   #1F5F4E;   /* Daylight deep green — primary accent */
+  --olive-600:   #6B7D70;   /* lighter sage */
+  --olive-500:   #8A9E8E;   /* muted sage */
+  --olive-200:   #C5D6C8;   /* pale sage */
+  --olive-100:   #E6EEE8;   /* very pale sage */
+
+  /* Gold */
+  --gold-500:    #B34A22;   /* Daylight terracotta (darker step, AA on white) */
+  --gold-400:    #C2552B;
+  --gold-200:    #E9B49E;
+  --gold-100:    #F7E3D9;
+  /* Darker gold for accessible text-on-light-gold and text-on-white use (AA, 4.5:1+) */
+  --gold-700:    #7A2F10;
+  /* olive-700 used as FOREGROUND text/border on a card surface — separate from its use as a
+     background (today-chip, share-img button), which stays --olive-700 in both themes. This
+     one flips to a lighter sage in dark mode so the same text keeps AA contrast either way. */
+  --olive-text:  var(--olive-700);
+
+  /* Ink */
+  --ink-900:     #181613;
+  --ink-600:     #46423B;
+  /* AA-contrast (4.5:1+) muted text on the site's near-white surfaces */
+  --ink-400:     #6E6A62;
+  --ink-200:     #C0BEB8;
+  --ink-100:     #E8E6E0;
+  --ink-50:      #F0EEE8;
+
+  --red:         #B82020;
+
+  /* Shadows */
+  --s1: 0 1px 3px rgba(20,15,5,.06);
+  --s2: 0 3px 12px rgba(20,15,5,.09);
+  --s3: 0 6px 28px rgba(20,15,5,.12);
+  --s4: 0 16px 56px rgba(20,15,5,.16);
+
+  /* Radii */
+  --r1: 6px;
+  --r2: 12px;
+  --r3: 18px;
+  --r4: 26px;
+  --r5: 40px;
+
+  /* Font — single heavy sans-serif throughout */
+  --display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --sans:    'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  --ease: 0.2s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── Reset ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* Visible keyboard focus everywhere — a browser default we never remove without replacing */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 2px;
+}
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+  /* FIX: clip (not hidden) — allows position:sticky to work */
+  overflow-x: clip;
+  /* Safari notch fix: html bg matches header so notch area never shows parchment */
+  background-color: #1A1A1A;
+}
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--ink-900);
+  min-height: 100vh;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+  width: 100%;
+}
+
+/* ── HEADER ─────────────────────────────────────────────── */
+.site-header {
+  /* Glassmorphism — charcoal glass. High opacity (not the usual ~.7 "glass" look) on
+     purpose: this bar is sticky and scrolls over both the dark hero and the light body,
+     so a more translucent tint would let its effective background swing across a wide
+     range depending on scroll position — which silently broke contrast for the muted
+     text in it (secondary date/labels) at some scroll positions but not others. */
+  background: rgba(20,20,26,.94);
+  backdrop-filter: blur(20px);
+  padding-top: env(safe-area-inset-top);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  width: 100%;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 22px;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  min-width: 0;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.logo-emblem {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--gold-500), var(--gold-400));
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(184,137,42,.3);
+}
+
+.logo-copy { line-height: 1.15; min-width: 0; }
+.logo-title {
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 700;
+  color: #F4F1EC;
+  letter-spacing: .1px;
+  white-space: nowrap;
+}
+.logo-sub {
+  font-size: 10px;
+  color: #ABABAB; /* solid — 5.0:1+ against the header's now-stable dark bg, incl. worst observed scroll position */
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.header-date {
+  text-align: right;
+  flex-shrink: 0;
+  min-width: 0;
+}
+.header-gregorian {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold-100);
+  letter-spacing: .4px;
+  white-space: nowrap;
+}
+.header-hijri {
+  font-size: 10px;
+  color: #ABABAB; /* solid — 5.0:1+ against the header's now-stable dark bg, incl. worst observed scroll position */
+  margin-top: 1px;
+  white-space: nowrap;
+}
+
+/* Selectors bar */
+.selectors-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 22px;
+  width: 100%;
+}
+
+/* FIX: natural width (not stretch) on desktop */
+.sel-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.11);
+  border-radius: var(--r1);
+  padding: 6px 11px;
+  min-width: 0;
+  flex: 0 0 auto;          /* ← was 1 1 auto; now natural width */
+  transition: border-color var(--ease);
+}
+.sel-group:focus-within { border-color: var(--gold-400); background: rgba(184,137,42,.1); }
+
+.sel-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ABABAB; /* solid — 5.0:1+ against the header's now-stable dark bg, incl. worst observed scroll position */
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  flex-shrink: 0;
+}
+
+.sel-group select {
+  background: transparent;
+  border: none;
+  color: #F4F1EC;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  min-width: 0;
+  /* natural width — do not force 100% */
+}
+.sel-group select:focus-visible {
+  outline: 2px solid var(--gold-200);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.sel-group select option { background: #262626; color: #F4F1EC; }
+
+.btn-locate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 16px;
+  background: linear-gradient(135deg, var(--gold-500), var(--gold-400));
+  border: none;
+  border-radius: var(--r1);
+  color: var(--olive-900);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--ease);
+  box-shadow: 0 2px 8px rgba(184,137,42,.3);
+  flex-shrink: 0;
+  margin-left: auto;       /* ← pushes to right */
+}
+.btn-locate:hover { filter: brightness(1.07); transform: translateY(-1px); }
+.btn-locate:active { transform: none; filter: none; }
+.btn-locate.locating { opacity: .7; pointer-events: none; }
+
+/* ── HERO ─────────────────────────────────────────────── */
+.hero-section {
+  background: linear-gradient(160deg, #111211 0%, #1e201e 55%, #2a2e2a 100%);
+  margin-top: -90px;
+  margin-bottom: -150px;
+  padding: 108px 22px 176px;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* Aurora orb 1 — gold, top-right, slow drift */
+.hero-section::before {
+  content: '';
+  position: absolute;
+  width: 520px; height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%,
+    rgba(184,137,42,.28) 0%,
+    rgba(184,137,42,.10) 35%,
+    transparent 70%);
+  top: -160px; right: -120px;
+  animation: auroraOrb1 14s ease-in-out infinite;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* Aurora orb 2 — sage green, bottom-left, slower drift */
+.hero-section::after {
+  content: '';
+  position: absolute;
+  width: 420px; height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%,
+    rgba(88,101,90,.30) 0%,
+    rgba(88,101,90,.10) 38%,
+    transparent 70%);
+  bottom: -80px; left: -100px;
+  animation: auroraOrb2 18s ease-in-out infinite;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+@keyframes auroraOrb1 {
+  0%,100% { transform: translate(0, 0) scale(1);      opacity: .85; }
+  30%      { transform: translate(-55px, 45px) scale(1.12); opacity: 1;   }
+  65%      { transform: translate(35px, -30px) scale(.93);  opacity: .6;  }
+}
+@keyframes auroraOrb2 {
+  0%,100% { transform: translate(0, 0) scale(1);      opacity: .75; }
+  40%      { transform: translate(60px, -45px) scale(1.14); opacity: 1;   }
+  72%      { transform: translate(-35px, 25px) scale(.88);  opacity: .5;  }
+}
+
+.hero-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.hero-location {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.hero-location-name {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 700;
+  color: #F4F1EC;
+  letter-spacing: -.1px;
+}
+.hero-location-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gold-400);
+  background: rgba(184,137,42,.15);
+  border: 1px solid rgba(184,137,42,.3);
+  padding: 3px 9px;
+  border-radius: 20px;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Hero date block — shown below location */
+.hero-date-block {
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.hero-date-greg {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,.55);
+  letter-spacing: .3px;
+}
+.hero-date-sep {
+  font-size: 11px;
+  color: rgba(255,255,255,.22);
+}
+.hero-date-hijri {
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(255,255,255,.35);
+}
+
+.hero-body {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.hero-next-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-400);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hero-next-label::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold-400);
+  box-shadow: 0 0 6px var(--gold-400);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+
+.hero-next-name {
+  font-family: var(--display);
+  font-size: 56px;
+  font-weight: 800;
+  color: #F4F1EC;
+  line-height: .95;
+  letter-spacing: -1.5px;
+}
+.hero-next-at {
+  font-size: 15px;
+  color: rgba(255,255,255,.5);
+  margin-top: 6px;
+  font-weight: 400;
+}
+
+.hero-timer-side { text-align: right; }
+.hero-timer-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,.35);
+  margin-bottom: 4px;
+}
+.hero-timer {
+  font-family: var(--display);
+  font-size: 56px;
+  font-weight: 800;
+  color: var(--gold-200);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0px;
+  line-height: 1;
+}
+
+/* ── MAIN CONTENT ───────────────────────────────────────── */
+.main-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px 48px;
+  width: 100%;
+}
+
+/* Pull-up overlap from hero */
+.prayers-pullup {
+  margin-top: -30px;
+  position: relative;
+  z-index: 10;
+  margin-bottom: 14px;
+}
+
+/* ── PRAYERS LAYOUT ─────────────────────────────────────── */
+.prayers-layout {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  width: 100%;
+}
+
+/* Featured current prayer — sage glass */
+.prayer-featured {
+  flex: 0 0 290px;
+  background: rgba(88,101,90,.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: var(--r4);
+  padding: 26px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: var(--s3);
+  position: relative;
+  overflow: hidden;
+  min-height: 240px;
+}
+.prayer-featured::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(184,137,42,.18) 0%, transparent 55%);
+  pointer-events: none;
+}
+.prayer-featured > * { position: relative; }
+
+.featured-now-badge {
+  position: absolute;
+  top: 14px; right: 14px;
+  background: var(--gold-500);
+  color: #1A1A1A;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+.featured-icon { font-size: 28px; margin-bottom: 7px; }
+.featured-name {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--olive-200);
+  margin-bottom: 8px;
+}
+.featured-time {
+  font-family: var(--display);
+  font-size: 52px;
+  font-weight: 800;
+  color: #F4F1EC;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+.featured-time-ampm {
+  font-size: 20px;
+  font-weight: 500;
+  color: rgba(255,255,255,.55);
+  letter-spacing: 0;
+}
+.featured-sub {
+  margin-top: 8px;
+  font-size: 12px;
+  color: rgba(255,255,255,.45);
+}
+
+/* Prayer list — frosted glass */
+.prayer-list-panel {
+  flex: 1;
+  background: rgba(255,255,255,.68);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,.65);
+  border-radius: var(--r4);
+  box-shadow: var(--s2);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.prayer-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--ink-100);
+  transition: background var(--ease);
+}
+.prayer-row:last-child { border-bottom: none; }
+.prayer-row:hover { background: var(--bg-subtle); }
+
+.prayer-row.is-next {
+  background: linear-gradient(90deg, rgba(184,137,42,.07) 0%, transparent 80%);
+  border-left: 3px solid var(--gold-400);
+}
+.prayer-row.is-past { opacity: .38; }
+/* Sunrise is informational — shown slightly muted (unless it's the active prayer) */
+.prayer-row.is-sunrise:not(.is-current):not(.is-next) .pr-name,
+.prayer-row.is-sunrise:not(.is-current):not(.is-next) .pr-time,
+.prayer-row.is-sunrise:not(.is-current):not(.is-next) .pr-icon { opacity: .52; }
+.prayer-row.is-current {
+  background: linear-gradient(90deg, rgba(88,101,90,.08) 0%, transparent 80%);
+  border-left: 3px solid var(--olive-text);
+}
+
+.pr-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
+.pr-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-900);
+  min-width: 0;
+}
+.pr-badge {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pr-badge-now  { background: rgba(88,101,90,.12); color: var(--olive-text); border: 1px solid var(--olive-200); }
+.pr-badge-next { background: var(--gold-100); color: var(--gold-700); border: 1px solid var(--gold-200); }
+
+.pr-time {
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink-900);
+  letter-spacing: -.3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pr-time-ampm { font-size: 11px; font-weight: 400; color: var(--ink-400); margin-left: 2px; }
+
+/* ── IMSAK / IFTAR — frosted glass ─────────────────────── */
+.imsak-strip {
+  background: rgba(255,255,255,.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,.6);
+  border-radius: var(--r3);
+  padding: 14px 22px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  box-shadow: var(--s1);
+  flex-wrap: wrap;
+}
+.imsak-item { display: flex; align-items: center; gap: 10px; }
+.imsak-icon { font-size: 17px; }
+.imsak-label { font-size: 11px; color: var(--ink-400); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+.imsak-value {
+  font-family: var(--display);
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--ink-900);
+  letter-spacing: -.3px;
+}
+.imsak-value-ampm { font-size: 12px; color: var(--ink-400); font-weight: 400; margin-left: 2px; }
+.imsak-divider { width: 1px; height: 30px; background: var(--ink-100); flex-shrink: 0; }
+
+/* ── SHARE BAR ─────────────────────────────────────────── */
+.share-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.btn-share {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--ink-100);
+  border-radius: var(--r2);
+  color: var(--ink-600);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--ease);
+  box-shadow: var(--s1);
+  white-space: nowrap;
+}
+.btn-share:hover {
+  border-color: var(--gold-400);
+  color: var(--gold-500);
+  background: var(--gold-100);
+}
+
+/* ── SECTION TITLE ─────────────────────────────────────── */
+.section-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  margin-top: 26px;
+  gap: 8px;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ink-900);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: -.3px;
+}
+.section-title::before {
+  content: '';
+  display: block;
+  width: 3px;
+  height: 20px;
+  background: linear-gradient(to bottom, var(--gold-500), var(--gold-400));
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ── MONTHLY TABLE ─────────────────────────────────────── */
+.monthly-card {
+  background: var(--bg-card);
+  border-radius: var(--r3);
+  box-shadow: var(--s2);
+  overflow: hidden;
+  border: 1px solid var(--ink-100);
+}
+.monthly-card-header {
+  background: linear-gradient(90deg, var(--olive-900), var(--olive-800));
+  padding: 16px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.monthly-title {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 800;
+  color: #F4F1EC;
+  letter-spacing: -.2px;
+}
+.monthly-zone-badge {
+  background: rgba(255,255,255,.1);
+  color: rgba(255,255,255,.65);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.monthly-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.monthly-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 560px;
+}
+.monthly-table thead tr {
+  background: var(--ink-50);
+  border-bottom: 2px solid var(--gold-200);
+}
+.monthly-table thead th {
+  padding: 11px 15px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--ink-600);
+  text-align: center;
+  white-space: nowrap;
+}
+.monthly-table thead th:first-child { text-align: left; }
+
+.monthly-table tbody tr {
+  border-bottom: 1px solid var(--ink-100);
+  transition: background var(--ease);
+}
+.monthly-table tbody tr:nth-child(even) { background: var(--bg-subtle); }
+.monthly-table tbody tr:last-child { border-bottom: none; }
+.monthly-table tbody tr:hover { background: var(--ink-50); }
+
+.monthly-table tbody tr.today-monthly {
+  background: linear-gradient(90deg, rgba(184,137,42,.1), transparent) !important;
+}
+.monthly-table tbody tr.today-monthly td { color: var(--olive-text); font-weight: 700; }
+.monthly-table tbody tr.is-friday { background: rgba(88,101,90,.04); }
+
+.monthly-table tbody td {
+  padding: 9px 15px;
+  font-size: 13px;
+  text-align: center;
+  color: var(--ink-600);
+  white-space: nowrap;
+}
+.monthly-table tbody td:first-child { text-align: left; color: var(--ink-900); font-size: 12px; }
+
+.today-chip {
+  display: inline-flex;
+  align-items: center;
+  background: var(--olive-700);
+  color: #F4F1EC;
+  font-size: 8px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 8px;
+  margin-left: 5px;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+/* ── APARTMENT TABLE ───────────────────────────────────── */
+.apt-card {
+  background: var(--bg-card);
+  border-radius: var(--r3);
+  overflow: hidden;
+  box-shadow: var(--s2);
+  border: 1px solid var(--ink-100);
+}
+.apt-header {
+  background: var(--olive-900);
+  color: #F4F1EC;
+  padding: 13px 20px;
+  font-weight: 700;
+  font-size: 13px;
+  text-align: center;
+  letter-spacing: .2px;
+}
+.apt-sub {
+  background: var(--ink-50);
+  padding: 7px 20px;
+  font-size: 11px;
+  color: var(--ink-400);
+  text-align: center;
+  border-bottom: 1px solid var(--ink-100);
+}
+.apt-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.apt-table { width: 100%; border-collapse: collapse; }
+.apt-table thead th {
+  padding: 10px 15px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--ink-600);
+  text-align: center;
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--ink-100);
+}
+.apt-table tbody tr { border-bottom: 1px solid var(--ink-100); }
+.apt-table tbody tr:last-child { border-bottom: none; }
+.apt-table tbody td { padding: 11px 15px; font-size: 13px; text-align: center; color: var(--ink-600); }
+.apt-note {
+  background: var(--bg-subtle);
+  border-top: 1px solid var(--ink-100);
+  padding: 7px 18px;
+  font-size: 10.5px;
+  color: var(--ink-400);
+  text-align: center;
+  letter-spacing: .2px;
+}
+.diff-neg { color: var(--red); font-weight: 700; }
+.diff-pos { color: var(--olive-text); font-weight: 700; }
+
+/* ── FOOTER NOTE ───────────────────────────────────────── */
+.foot-note {
+  background: var(--gold-100);
+  border-left: 4px solid var(--gold-500);
+  border-radius: 0 var(--r1) var(--r1) 0;
+  padding: 12px 17px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--ink-600);
+  line-height: 1.6;
+}
+.foot-note strong { color: var(--ink-900); }
+
+/* ── ATTRIBUTION ───────────────────────────────────────── */
+.attribution-card {
+  background: var(--bg-card);
+  border-radius: var(--r3);
+  padding: 20px;
+  box-shadow: var(--s2);
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  border: 1px solid var(--ink-100);
+}
+.attr-logo {
+  width: 48px; height: 48px;
+  background: linear-gradient(135deg, var(--olive-900), var(--olive-800));
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.attr-body h3 {
+  font-family: var(--display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink-900);
+  margin-bottom: 4px;
+}
+.attr-body p { font-size: 12px; color: var(--ink-400); line-height: 1.6; margin-bottom: 8px; }
+.attr-links { display: flex; gap: 12px; flex-wrap: wrap; }
+.attr-links a {
+  font-size: 12px;
+  color: var(--olive-text);
+  text-decoration: none;
+  font-weight: 600;
+  display: flex; align-items: center; gap: 4px;
+}
+.attr-links a:hover { text-decoration: underline; }
+
+/* ── SITE FOOTER ───────────────────────────────────────── */
+.site-footer {
+  background: var(--olive-900);
+  color: #999999; /* 6.1:1 on #1A1A1A — AA */
+  text-align: center;
+  padding: 20px;
+  font-size: 11px;
+  margin-top: 30px;
+  line-height: 1.7;
+}
+.site-footer a { color: var(--gold-400); text-decoration: underline; }
+
+/* ── SHARE MODAL ───────────────────────────────────────── */
+.share-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(14,20,7,.6);
+  backdrop-filter: blur(4px);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--ease);
+}
+.share-modal-overlay.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+.share-modal {
+  background: var(--bg);
+  border-radius: var(--r4);
+  padding: 24px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: var(--s4);
+  transform: translateY(14px);
+  transition: transform var(--ease);
+}
+.share-modal-overlay.visible .share-modal { transform: none; }
+
+.share-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.share-modal-title {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ink-900);
+  letter-spacing: -.3px;
+}
+.btn-modal-close {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ink-50);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-400);
+  transition: var(--ease);
+}
+.btn-modal-close:hover { background: var(--ink-100); color: var(--ink-900); }
+
+/* Date picker row in modal */
+.share-date-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  background: var(--ink-50);
+  border: 1px solid var(--ink-100);
+  border-radius: var(--r2);
+  padding: 8px 14px;
+}
+.share-date-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-600);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.share-date-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-900);
+  cursor: pointer;
+  outline: none;
+  min-width: 0;
+}
+.share-date-input:focus-visible {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+/* Remove the default date-input chrome on WebKit */
+.share-date-input::-webkit-calendar-picker-indicator {
+  opacity: .4;
+  cursor: pointer;
+}
+
+.share-preview {
+  background: var(--olive-900);
+  border-radius: var(--r2);
+  padding: 18px;
+  margin-bottom: 16px;
+  color: #F4F1EC;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  line-height: 1.75;
+  white-space: pre;
+  overflow-x: auto;
+  /* Limit height so Copy/Share buttons stay visible regardless of content length */
+  max-height: 42vh;
+  overflow-y: auto;
+}
+.share-actions { display: flex; gap: 8px; }
+.btn-copy, .btn-share-native {
+  flex: 1;
+  padding: 11px;
+  border-radius: var(--r2);
+  border: none;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--ease);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-copy {
+  background: var(--ink-50);
+  border: 1.5px solid var(--ink-100);
+  color: var(--ink-600);
+}
+.btn-copy:hover { border-color: var(--gold-400); color: var(--gold-500); }
+.btn-copy.copied { border-color: var(--olive-text); color: var(--olive-text); }
+.btn-share-native {
+  background: linear-gradient(135deg, var(--olive-900), var(--olive-800));
+  color: #F4F1EC;
+  box-shadow: var(--s2);
+}
+.btn-share-native:hover { filter: brightness(1.15); }
+
+.btn-share-img {
+  flex: 1;
+  padding: 11px;
+  border-radius: var(--r2);
+  border: none;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--ease);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(135deg, var(--olive-700), var(--olive-600));
+  color: #F4F1EC;
+  box-shadow: var(--s2);
+}
+.btn-share-img:hover   { filter: brightness(1.15); }
+.btn-share-img:disabled { opacity: .5; cursor: wait; }
+
+/* ── STATES ─────────────────────────────────────────────── */
+.spinner {
+  width: 28px; height: 28px;
+  border: 2.5px solid var(--ink-100);
+  border-top-color: var(--olive-700);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  margin: 0 auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 36px;
+  color: var(--ink-400);
+  font-size: 13px;
+}
+.hidden { display: none !important; }
+
+/* ── RESPONSIVE ─────────────────────────────────────────── */
+
+/* Tablet */
+@media (max-width: 860px) {
+  .prayer-featured { flex: 0 0 240px; }
+  .hero-next-name { font-size: 46px; }
+  .hero-timer { font-size: 46px; }
+}
+
+/* Desktop */
+@media (min-width: 680px) {
+
+}
+
+/* Mobile */
+@media (max-width: 680px) {
+  /* Header — hide date (moved to hero) */
+  .header-top { padding: 10px 14px; }
+  .logo-title { font-size: 13px; }
+  .logo-sub { display: none; }
+  .header-date { display: none; }   /* Whole date moved to hero */
+  .logo-emblem { display: none; } 
+
+  /* Selectors — full-width stacked */
+  .selectors-bar {
+    padding: 8px 14px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .sel-group {
+    flex: 1 1 auto;    /* stretch on mobile */
+    min-width: 0;
+  }
+  .btn-locate {
+    width: 100px;
+    margin-left: 0;
+  }
+
+  /* Hero */
+  .hero-section {
+    padding: 100px 14px 160px;
+  }
+  /* Scale orbs down a bit on mobile so they fill correctly */
+  .hero-section::before { width: 340px; height: 340px; top: -100px; right: -80px; }
+  .hero-section::after  { width: 280px; height: 280px; bottom: -50px; left: -60px; }
+
+  /* Mobile hero: two-column grid for next prayer + timer */
+  .hero-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+  .hero-timer-side { text-align: right; }
+  .hero-next-name { font-size: 38px; letter-spacing: -1px; }
+  .hero-timer { font-size: 38px; letter-spacing: 0; }
+
+  /* Main */
+  .main-content { padding: 0 12px 36px; }
+  .prayers-pullup { margin-top: -26px; }
+
+  /* Stack prayers vertically */
+  .prayers-layout { flex-direction: column; gap: 10px; }
+  .prayer-featured {
+    flex: none;
+    width: 100%;
+    min-height: 190px;
+    border-radius: var(--r4) var(--r4) var(--r2) var(--r2);
+    padding: 22px 18px;
+  }
+  .featured-time { font-size: 48px; letter-spacing: -2px; }
+  .prayer-list-panel { border-radius: var(--r2) var(--r2) var(--r4) var(--r4); }
+
+  /* Imsak */
+  .imsak-strip { gap: 12px; padding: 12px 14px; }
+  .imsak-value { font-size: 18px; }
+
+  /* Share */
+  .share-bar { flex-direction: column; align-items: stretch; }
+  .btn-share { justify-content: center; }
+
+  /* Section */
+  .section-hd { margin-top: 20px; }
+  .section-title { font-size: 19px; }
+
+  /* Monthly header */
+  .monthly-card-header { padding: 12px 14px; }
+  .monthly-title { font-size: 16px; }
+  .monthly-zone-badge { font-size: 10px; padding: 3px 8px; }
+
+  /* Attribution */
+  .attribution-card { flex-direction: column; padding: 16px; }
+
+  /* Apartment table — compact on mobile */
+  .apt-table thead th { padding: 8px 10px; font-size: 9px; letter-spacing: .4px; }
+  .apt-table tbody td { padding: 9px 10px; font-size: 12px; }
+
+  /* Share modal */
+  .share-modal { padding: 16px; }
+  .share-preview { font-size: 11.5px; padding: 14px; }
+}
+
+/* Tiny screens */
+@media (max-width: 360px) {
+  .hero-next-name { font-size: 30px; }
+  .hero-timer { font-size: 30px; }
+  .featured-time { font-size: 40px; }
+}
+
+/* ── Toast (location notices) ─────────────────────────────── */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%) translateY(16px);
+  max-width: min(92vw, 460px);
+  padding: 12px 18px;
+  background: var(--olive-800);
+  color: #FFFFFF;
+  font: 500 14px/1.4 var(--sans);
+  text-align: center;
+  border-radius: var(--r2);
+  box-shadow: var(--s3);
+  border: 1px solid rgba(184,137,42,.35);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 600;
+  transition: opacity var(--ease), transform var(--ease);
+}
+.toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── First-run "locate me" soft-ask card ──────────────────── */
+.locate-prompt {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%) translateY(20px);
+  width: min(94vw, 460px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  color: var(--ink-900);
+  border: 1px solid var(--ink-100);
+  border-top: 3px solid var(--gold-500);
+  border-radius: var(--r2);
+  box-shadow: var(--s4);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 590;
+  transition: opacity var(--ease), transform var(--ease);
+}
+.locate-prompt.visible { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+.locate-prompt .lp-text { font: 600 14.5px/1.35 var(--sans); }
+.locate-prompt .lp-actions { display: flex; gap: 8px; margin-left: auto; }
+.locate-prompt button {
+  font: 600 13.5px var(--sans);
+  padding: 8px 16px;
+  border-radius: var(--r1);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: filter var(--ease), background var(--ease);
+}
+.locate-prompt .lp-allow { background: var(--gold-700); color: #fff; }
+.locate-prompt .lp-allow:hover { filter: brightness(1.06); }
+.locate-prompt .lp-skip { background: transparent; color: var(--ink-400); border-color: var(--ink-100); }
+.locate-prompt .lp-skip:hover { background: var(--ink-50); }
+
+/* ── Reduced motion ────────────────────────────────────────
+   Respect the OS-level "reduce motion" setting: stop the decorative
+   infinite loops (aurora blobs, NOW badge blink) outright, and cut every
+   other transition/animation down to a near-instant state change instead
+   of removing feedback entirely. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .spinner { animation-duration: 1.4s !important; animation-iteration-count: infinite !important; }
+  .btn-locate:hover, .locate-prompt button:hover { transform: none; }
+}
+
+/* ── Dark mode ─────────────────────────────────────────────
+   Re-points the page-chrome role tokens (bg / card / subtle surface, and
+   the ink text scale) plus --olive-text, the one accent reused as
+   foreground text on those surfaces. Everything already styled with
+   var(--bg*)/var(--ink-*) picks this up automatically — the selectors
+   bar, hero, cards, tables, footer and share modal.
+   Three components needed their own override because they don't use the
+   bg/ink tokens at all — they're translucent "glass" tuned to sit over a
+   LIGHT body, and turn unreadable once the body they blend with goes dark:
+   - .prayer-list-panel / .imsak-strip: frosted-white glass cards that float
+     over the dark hero. Their own text already uses var(--ink-900), which
+     is now light — so the glass itself has to flip from a white tint to a
+     dark one to stay a light-text-on-dark-surface pair instead of
+     light-on-light.
+   (The header's own muted text — .header-hijri / .sel-label / .logo-sub —
+   had this same failure mode and is fixed at the source instead: the
+   header background is now opaque enough, and those three solid instead
+   of translucent, that it no longer depends on light vs. dark mode at all.)
+   NOT done (kept out on purpose, unverified/needs RUBY2 to judge visually):
+   the box-shadow tokens (--s1..--s4) stay tuned for a light surface and
+   will look flat on a dark card — cosmetic only, not an a11y regression. */
+/* Labs Ambient is Daylight (light) only: the sheet no longer flips to a dark partner on dark-mode phones. */

@@ -22,6 +22,11 @@ const SHELL_ASSETS = [
   '/assets/images/icon-192.png',
   '/assets/images/icon-512.png',
   '/manifest.json',
+  // Labs: Ambient view (not the home page)
+  '/labs/ambient.html',
+  '/assets/css/ambient-base.css',
+  '/assets/css/ambient.css',
+  '/assets/js/ambient.js',
 ];
 
 // ── Install: pre-cache the shell ──────────────────────────
