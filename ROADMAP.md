@@ -20,17 +20,17 @@ Makes this repo the one prayer-times source for the family (Salah-board, Brillia
 
 | ID | What | Model | Status |
 |---|---|---|---|
-| PT-0 | Deploy an allowlisted `_site/`, not the repo root | Sonnet | ready |
-| PT-1 | `data/manifest.json`, schema, generator, manifest test | Sonnet | ready |
-| PT-2 | Validation suite over all 156 timetable files | Sonnet | ready |
-| PT-3 | One zone list; versioned, configurable `pt-core.js` | Sonnet | ready |
+| PT-0 | Deploy an allowlisted `_site/`, not the repo root | Sonnet | done 2026-11-17 |
+| PT-1 | `data/manifest.json`, schema, generator, manifest test | Sonnet | done 2026-11-17 |
+| PT-2 | Validation suite over all 156 timetable files | Sonnet | done 2026-11-17 |
+| PT-3 | One zone list; versioned, configurable `pt-core.js` | Sonnet | done 2026-11-17 |
 | PT-5 | Nallur zone override | Sonnet | blocked on ACJU |
 
 ## Phase 10 — the redesign (ADR 0002)
 
 | ID | What | Model | Status |
 |---|---|---|---|
-| PT-4 | Promote the picked layout and palette; archive the rest; v9.0.0 | Sonnet | blocked on Shehan's pick |
+| PT-4 | Promote the picked layout and palette; archive the rest; v9.0.0 | Sonnet | built on `build/pt-0-3`; live as Labs `/labs/ambient.html`; merge waits on Shehan's go |
 
 ## Requests out
 
