@@ -308,7 +308,7 @@ function buildTodayShare(data, row, displayYear) {
     `  Asr ───── ${row.asr}`,
     `  Maghrib ─── ${row.magrib}`,
     `  Isha ───── ${row.isha}`,
-    `Shared from - pray.gear.lk`,
+    `Shared from - pray.sakina.lk`,
     `Source: ACJU Official - www.acju.lk/prayer-times/`,
   ].join('\n');
 }
@@ -336,7 +336,7 @@ function buildMonthShare(data, displayYear) {
   });
   lines.push(SEP);
   lines.push(``);
-  lines.push(`To generate your own prayer times, visit pray.gear.lk`);
+  lines.push(`To generate your own prayer times, visit pray.sakina.lk`);
   return lines.join('\n');
 }
 
@@ -454,7 +454,7 @@ function generateDayCanvas(data, row, displayYear) {
   _hrule(ctx, P, y, W - P, 'rgba(184,137,42,.25)');
   y += 13;
   _txt(ctx, 'www.acju.lk/prayer-times/', P, y, { size: 9, color: '#B0AEA8' });
-  _txt(ctx, 'For full timetable, visit - pray.gear.lk', W - P, y, { size: 9, color: '#312308', align: 'right' });
+  _txt(ctx, 'For full timetable, visit - pray.sakina.lk', W - P, y, { size: 9, color: '#312308', align: 'right' });
 
   return canvas;
 }
@@ -549,7 +549,7 @@ function generateMonthCanvas(data, displayYear) {
   _hrule(ctx, P, y, W - P, 'rgba(0,0,0,.08)');
   y += 14;
   _txt(ctx, 'www.acju.lk/prayer-times/', P, y, { size: 9, color: '#B0AEA8' });
-  _txt(ctx, 'For full timetable, visit - pray.gear.lk', W - P, y, { size: 9, color: '#312308', align: 'right' });
+  _txt(ctx, 'For full timetable, visit - pray.sakina.lk', W - P, y, { size: 9, color: '#312308', align: 'right' });
 
   return canvas;
 }
@@ -563,7 +563,7 @@ async function shareCanvasImage(canvas, filename) {
         const file = new File([blob], filename, { type: 'image/png' });
         try {
           if (navigator.canShare({ files: [file] })) {
-            await navigator.share({ files: [file], title: 'Prayer Times shared from - pray.gear.lk' });
+            await navigator.share({ files: [file], title: 'Prayer Times shared from - pray.sakina.lk' });
             resolve(true); return;
           }
         } catch (e) { if (e.name !== 'AbortError') console.warn('share:', e); }

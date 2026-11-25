@@ -323,7 +323,7 @@
       `  Asr ───── ${row.asr}`,
       `  Maghrib ─── ${row.magrib}`,
       `  Isha ───── ${row.isha}`,
-      `Shared from - pray.gear.lk`,
+      `Shared from - pray.sakina.lk`,
       `Source: ACJU Official - www.acju.lk/prayer-times/`,
     ].join('\n');
   }

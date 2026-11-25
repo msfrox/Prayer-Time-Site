@@ -1,0 +1,12 @@
+// pray.sakina.lk — the same allowlisted site as GitHub Pages (pray.gear.lk), as a Worker of static assets.
+// Build and deploy: bash build/make-site.sh _site && npx wrangler deploy
+{
+  "$schema": "https://unpkg.com/wrangler/config-schema.json",
+  "name": "prayer-time-site",
+  "compatibility_date": "2026-11-01",
+  "main": "build/worker.js",
+  // exact paths: a .html redirect would break the service worker's cached pages
+  "assets": { "directory": "./_site", "binding": "ASSETS", "not_found_handling": "none", "html_handling": "none" },
+  // sakina.lk is in this Cloudflare account
+  "routes": [{ "pattern": "pray.sakina.lk", "custom_domain": true }]
+}

@@ -28,4 +28,7 @@ find "$OUT" -name '*.md' -delete
 # Bust the service-worker shell cache on every deploy
 SHA="${GIT_SHA:-$(git rev-parse --short HEAD)}"
 sed -i "s/__GIT_SHA__/$SHA/g" "$OUT/sw.js"
+# Cloudflare only (pray.sakina.lk); GitHub Pages ignores it and sends the same headers itself.
+# Other origins read /data/ (the published contract), so it stays open to them.
+printf '/*\n  Access-Control-Allow-Origin: *\n  Cache-Control: public, max-age=600\n' > "$OUT/_headers"
 echo "make-site: $OUT built at $SHA"
