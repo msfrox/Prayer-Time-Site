@@ -22,8 +22,9 @@ for p in "${ALLOW[@]}"; do
 done
 # cp -R keeps the read-only mode of assets/ folders; make the copy writable so it can be cleaned up
 chmod -R u+w "$OUT"
-# Docs that live beside allowlisted code (assets/js/PT-CORE.md, data/SCHEMA.md) stay in the repo only
-find "$OUT" -name '*.md' -delete
+# Docs that live beside allowlisted code (assets/js/PT-CORE.md) stay in the repo only. data/SCHEMA.md is part of the
+# published contract: data/manifest.json lists it, so a reader fetching every listed file must find it.
+find "$OUT" -name '*.md' -not -path "$OUT/data/SCHEMA.md" -delete
 
 # Bust the service-worker shell cache on every deploy
 SHA="${GIT_SHA:-$(git rev-parse --short HEAD)}"
