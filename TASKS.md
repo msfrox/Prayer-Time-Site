@@ -114,6 +114,14 @@ regenerate the manifest and bump `revision`.
 Done when: `validate.js` passes with a new Nallur test point; manifest test passes.
 Don't: do this on a guess.
 
+### PT-6 — Move the site to the sakina.lk domain                [Sonnet] · effort medium · ~2 h
+Why: Shehan, 25 Nov 2026: the site is fine as it is; "only thing is, we have to move that to the Sakina.lk domain".
+Context to read: `CNAME`, `README.md`, ADR 0001 (the published data contract), every `pray.gear.lk` reference (pt-core.js, app.js, SCHEMA.md), PT-R1 (brilliant-bar's fetcher).
+Do: agree the host name with Shehan (e.g. `pray.sakina.lk`); set up the domain (Cloudflare: Shehan); change the references; keep `pray.gear.lk` redirecting, and keep its `data/manifest.json` and data files answering until every reader has moved.
+Done when: the new host serves the site and data, the old one redirects without breaking the data readers or the installed app (service worker scope), tests pass.
+Needs Shehan: the host name, DNS, and the deploy (a push to `main` deploys).
+Don't: change the layout or the look.
+
 ---
 
 ## Requests to other repos
