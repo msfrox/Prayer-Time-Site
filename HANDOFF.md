@@ -2,25 +2,44 @@
 
 _Replace this file at the end of every session; git history keeps the old versions._
 
-## Current state (2026-11-26)
+## Current state (2026-11-26, ACJU recheck)
 
-- **PROJECT DONE (Shehan, 26 Nov):** PT-4 closed as his call (Ambient stays Labs, classic stays home, `build/pt-0-3` not merged). Open for him only: the 3 checks in SHEHAN-TODO and the one Worker deploy (deploy-on-push token is [optional](SHEHAN-TODO.md#optional-later-or-never)).
+- **Data fix ready, NOT merged or pushed:** branch `claude/heuristic-kilby-26722e`, three commits on top of `main`:
+  1. fix(data): zone 05 Feb/Apr/Jun/Sep/Nov held zone 06's table (since the first commit; ACJU's 2025
+     Kurunegala pages were labelled `Zone: 05`) and zone 10 May had ACJU's 2025 values, which 2026 corrects (43 cells).
+     Revision `2026-11-26.2`, `source.edition`.
+  2. feat(data): optional `asrHanafi` on every day of all 156 files (ACJU's new column). Revision `2026-11-26.3`.
+  3. docs: the report, research index, BUGS, SHEHAN-TODO, TASKS, this file, and `sources/` (checksum lists only).
+- **ACJU PDFs are kept out of git** (public repo): both editions on RUBY2 under `~/office/Brands/Gear.lk/Site/Prayer Time
+  Website/` (`PDF/` = 2025, `PDF-2026-09-15/`) and on Sapphire under `/srv/bulk/reference/acju-prayer-times/`; see `sources/README.md`.
+- **Recheck result** ([summary](docs/general/acju-recheck.md), [raw](docs/research-raw/acju-recheck-2026-11-26.md)): ACJU's
+  current 156 PDFs (made 15 Sep 2026, no edition printed) match 150 files exactly; the Shafi'i times changed only in zone 10 May.
+  Read three ways (poppler text, pdfminer, OCR of all 33,306 cells); all agree. Our data was typed from the 2025 edition (151/156 exact).
+- Checks on the branch: `npm test` 87/87, `build/validate.js` 28/28, `make-site` + `verify-site` ok, Salah-board
+  `check_zone_file` passes all 157 files, brilliant-bar `brilliant-prayer-fetch` (override mode) reads revision `.3`.
+- Unchanged from before: the site at https://pray.sakina.lk is deployed by hand (`wrangler`); pray.gear.lk (Pages, deploys
+  on push to `main`) redirects pages but still serves `/data/` for the Salah-board.
 
-- **Hosts:** https://pray.sakina.lk is the site (Cloudflare Worker, `wrangler.jsonc`, deployed **by hand**:
-  `bash build/make-site.sh _site && npx wrangler deploy`; not on push). pray.gear.lk (GitHub Pages) redirects every
-  page to the same path on sakina.lk (`build/make-gear-redirect.sh`, `pages.yml`, checked by `verify-site.sh --gear`);
-  its `/data/` keeps answering for the Salah-board until every reader moves, then it retires.
-- **Docs repointed (PT-6 remainder):** README, SCHEMA.md, ROADMAP, TASKS, SHEHAN-TODO and the Labs/designs text now say
-  pray.sakina.lk. ADR 0001 is unchanged (history). The Labs/designs text is live on sakina.lk only after a Worker deploy.
-- **Decided on default (26 Nov), not seen by Shehan:** no deploy-on-push for the Worker; steps for adding it are in card PT-6.
-- `/` is still the classic v8 page; Ambient v9 is at `/labs/ambient.html`. `npm test` and `build/validate.js` green at last run.
-- Branch `build/pt-0-3` (pushed) still has the full PT-4 swap (Ambient as `/`); port the `labs` fixes if approved.
+## Resume: merge and deploy (Shehan's one yes)
 
-## Resume
+Live data feeds the site, the Salah-board (polls `pray.gear.lk/data/`) and the bar (reads `~/Projects/Prayer-Time-Site/data/`
+first, then `pray.sakina.lk/data/`). From the main checkout `~/Projects/Prayer-Time-Site`:
 
-Waiting on Shehan: deploy the Worker once; ACJU's Nallur answer for PT-5. Then PT-R1 readers move to sakina.lk and gear.lk retires. Optional, not waiting: Cloudflare secrets for deploy-on-push ([SHEHAN-TODO](SHEHAN-TODO.md#optional-later-or-never)).
+1. `chmod -R u+w data assets .github` (they may be mode 555)
+2. `git checkout main && git merge --no-ff claude/heuristic-kilby-26722e` (fix only, without Hanafi:
+   merge the fix(data) commit alone; the later commits then need cherry-picking, and the docs describe the Hanafi field)
+3. `npm test`
+4. `git push origin main` → Pages redeploys pray.gear.lk; the Salah-board picks up revision `.3` on its next refresh
+5. `bash build/make-site.sh _site && npx wrangler deploy` → pray.sakina.lk (needs Shehan's Cloudflare login)
+
+The bar sees the new data as soon as step 2 lands in the main checkout.
+
+Still open for Shehan otherwise: ACJU's Nallur answer (PT-5).
 
 ## Gotchas
 
 - `data/`, `assets/`, `.github` may be mode 555: `chmod -R u+w` before switching branches.
+- Zone files are `json.dumps(indent=2)` with no trailing newline; keep that byte form (Salah-board compares checksums).
+- Never commit the ACJU PDFs (public repo); `sources/` holds only their checksums.
+- ACJU file names: zones 03/09/12 are `NN.-…-Hanafi_MM_0MM.pdf`; zone 01 June dates read `Jun-1`.
 - Labs page unseen on a real phone / iOS Safari. `build/contrast-check.js` lives only on `build/pt-0-3`.
