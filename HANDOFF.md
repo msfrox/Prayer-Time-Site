@@ -4,7 +4,7 @@ _Replace this file at the end of every session; git history keeps the old versio
 
 ## Current state (2026-11-26)
 
-- **PROJECT DONE (Shehan, 26 Nov):** PT-4 closed as his call (Ambient stays Labs, classic stays home, `build/pt-0-3` not merged). Open for him only: the 3 checks in SHEHAN-TODO, the one Worker deploy, optional deploy-on-push token.
+- **PROJECT DONE (Shehan, 26 Nov):** PT-4 closed as his call (Ambient stays Labs, classic stays home, `build/pt-0-3` not merged). Open for him only: the 3 checks in SHEHAN-TODO and the one Worker deploy (deploy-on-push token is [optional](SHEHAN-TODO.md#optional-later-or-never)).
 
 - **Hosts:** https://pray.sakina.lk is the site (Cloudflare Worker, `wrangler.jsonc`, deployed **by hand**:
   `bash build/make-site.sh _site && npx wrangler deploy`; not on push). pray.gear.lk (GitHub Pages) redirects every
@@ -18,7 +18,7 @@ _Replace this file at the end of every session; git history keeps the old versio
 
 ## Resume
 
-Waiting on Shehan: deploy the Worker once; optionally add Cloudflare secrets for deploy-on-push (PT-6 card); ACJU's Nallur answer for PT-5. Then PT-R1 readers move to sakina.lk and gear.lk retires.
+Waiting on Shehan: deploy the Worker once; ACJU's Nallur answer for PT-5. Then PT-R1 readers move to sakina.lk and gear.lk retires. Optional, not waiting: Cloudflare secrets for deploy-on-push ([SHEHAN-TODO](SHEHAN-TODO.md#optional-later-or-never)).
 
 ## Gotchas
 
