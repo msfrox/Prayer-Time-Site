@@ -1,6 +1,6 @@
 name: Deploy to GitHub Pages
 
-# Publishes only the allowlist in build/make-site.sh (not the whole repo).
+# Publishes the allowlist in build/make-site.sh, with every page turned into a redirect to pray.sakina.lk (data/ untouched).
 # Needs Settings > Pages > Source = "GitHub Actions"; with "Deploy from a branch" the legacy
 # build serves the whole repo and races this workflow.
 
@@ -26,11 +26,21 @@ jobs:
       - name: Assemble site from allowlist
         run: |
           # Only files listed in build/make-site.sh are published; docs, tests and build/ stay private.
-          bash build/make-site.sh _site
-          echo "sw.js updated: $(grep SHELL_VERSION _site/sw.js | head -1)"
+          bash build/make-site.sh _site-full
+          echo "sw.js updated: $(grep SHELL_VERSION _site-full/sw.js | head -1)"
 
-      - name: Verify site folder
-        run: bash build/verify-site.sh _site
+      - name: Verify the full site folder
+        run: bash build/verify-site.sh _site-full
+
+      # pray.gear.lk only (the Worker at pray.sakina.lk is built separately and serves the real site):
+      # pages redirect to pray.sakina.lk, data/ stays as is for readers such as the Salah-board.
+      - name: Turn pages into redirects
+        run: |
+          cp -R _site-full _site
+          bash build/make-gear-redirect.sh _site
+
+      - name: Verify redirect site
+        run: bash build/verify-site.sh --gear _site _site-full
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

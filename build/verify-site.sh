@@ -3,6 +3,23 @@
 # there, every local href/src in the HTML resolves, every file data/manifest.json lists exists,
 # and no repo-only file leaked in. Usage: bash build/verify-site.sh [dir]  (default _site)
 set -euo pipefail
+# Gear mode (pray.gear.lk): bash build/verify-site.sh --gear <redirect-dir> <full-site-dir>
+# every page must be a redirect to pray.sakina.lk, and data/ + CNAME must match the full site byte for byte.
+if [ "${1:-}" = "--gear" ]; then
+  DIR="${2:?redirect dir}"; REF="${3:?full site dir}"; fail=0
+  bad() { echo "verify-site --gear: $*" >&2; fail=1; }
+  while IFS= read -r html; do
+    grep -q 'http-equiv="refresh"' "$html" && grep -q 'location.replace("https://pray.sakina.lk"' "$html" \
+      && grep -q 'rel="canonical" href="https://pray.sakina.lk/' "$html" || bad "not a redirect page: $html"
+  done < <(find "$DIR" -name '*.html' -not -path "$DIR/data/*")
+  [ -n "$(find "$DIR" -name '*.html' | head -1)" ] || bad "no pages found"
+  [ -d "$DIR/data" ] || bad "data/ missing"
+  diff -r "$REF/data" "$DIR/data" >/dev/null 2>&1 || bad "data/ differs from the full site (missing or changed file)"
+  cmp -s "$REF/CNAME" "$DIR/CNAME" || bad "CNAME missing or changed"
+  grep -q 'registration.unregister' "$DIR/sw.js" || bad "sw.js is not the retiring worker"
+  [ "$fail" = 0 ] && echo "verify-site --gear: $DIR ok (pages redirect, data/ identical to full site)"
+  exit "$fail"
+fi
 DIR="${1:-_site}"
 fail=0
 bad() { echo "verify-site: $*" >&2; fail=1; }

@@ -15,7 +15,7 @@ _Replace this file at the end of every session; git history keeps the old versio
   Its dark partner and prompt position fixes are NOT applied there; port `labs` fixes if he approves.
 - `npm test` 87 pass; `build/validate.js` 28/28.
 
-- **2026-11-26 (PT-6):** Shehan: "keep both for now. retire after about 6 months." pray.gear.lk and pray.sakina.lk both stay live, no redirect now; retire pray.gear.lk around late May 2027.
+- **2026-11-26 (PT-6):** Shehan: "shall we just add a redirect to pray.gear.lk and make pray.sakina.lk the only one" → "Yes, redirect pages". Supersedes "keep both for ~6 months". pray.gear.lk (GitHub Pages) pages redirect to the same path on pray.sakina.lk via `build/make-gear-redirect.sh` in `pages.yml` only; `/data/`, CNAME and assets are untouched, and `sw.js` there is a retiring worker (clears caches, unregisters, reloads). `verify-site.sh --gear` fails CI if a page is not a redirect or `data/` differs. The Worker is unchanged. Installed copies on gear.lk lose their saved settings (stored per address; accepted). Retire gear.lk fully once the Salah-board reads from pray.sakina.lk.
 
 ## Resume
 
