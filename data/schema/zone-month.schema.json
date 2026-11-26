@@ -23,6 +23,7 @@
           "sunrise": { "$ref": "#/$defs/time" },
           "luhr": { "$ref": "#/$defs/time" },
           "asr": { "$ref": "#/$defs/time" },
+          "asrHanafi": { "$ref": "#/$defs/time", "description": "Optional. Asr by the Hanafi method (ACJU's ASR-HANAFI column). asr is the Shafi'i time." },
           "magrib": { "$ref": "#/$defs/time" },
           "isha": { "$ref": "#/$defs/time" }
         }

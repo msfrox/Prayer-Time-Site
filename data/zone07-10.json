@@ -16,6 +16,7 @@
       "sunrise": "5:56 AM",
       "luhr": "11:58 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:17 PM",
       "magrib": "6:00 PM",
       "isha": "7:09 PM"
     },
@@ -25,6 +26,7 @@
       "sunrise": "5:56 AM",
       "luhr": "11:58 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:17 PM",
       "magrib": "6:00 PM",
       "isha": "7:08 PM"
     },
@@ -34,6 +36,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:58 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:17 PM",
       "magrib": "5:59 PM",
       "isha": "7:08 PM"
     },
@@ -43,6 +46,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:58 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:16 PM",
       "magrib": "5:59 PM",
       "isha": "7:07 PM"
     },
@@ -52,6 +56,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:57 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:16 PM",
       "magrib": "5:58 PM",
       "isha": "7:07 PM"
     },
@@ -61,6 +66,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:57 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:16 PM",
       "magrib": "5:58 PM",
       "isha": "7:06 PM"
     },
@@ -70,6 +76,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:57 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:15 PM",
       "magrib": "5:57 PM",
       "isha": "7:06 PM"
     },
@@ -79,6 +86,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:56 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:15 PM",
       "magrib": "5:57 PM",
       "isha": "7:06 PM"
     },
@@ -88,6 +96,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:56 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:15 PM",
       "magrib": "5:56 PM",
       "isha": "7:05 PM"
     },
@@ -97,6 +106,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:56 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:14 PM",
       "magrib": "5:56 PM",
       "isha": "7:05 PM"
     },
@@ -106,6 +116,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:56 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:14 PM",
       "magrib": "5:55 PM",
       "isha": "7:04 PM"
     },
@@ -115,6 +126,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:55 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:14 PM",
       "magrib": "5:55 PM",
       "isha": "7:04 PM"
     },
@@ -124,6 +136,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:55 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:14 PM",
       "magrib": "5:55 PM",
       "isha": "7:04 PM"
     },
@@ -133,6 +146,7 @@
       "sunrise": "5:54 AM",
       "luhr": "11:55 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:13 PM",
       "magrib": "5:54 PM",
       "isha": "7:03 PM"
     },
@@ -142,6 +156,7 @@
       "sunrise": "5:54 AM",
       "luhr": "11:55 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:13 PM",
       "magrib": "5:54 PM",
       "isha": "7:03 PM"
     },
@@ -151,6 +166,7 @@
       "sunrise": "5:54 AM",
       "luhr": "11:54 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:13 PM",
       "magrib": "5:53 PM",
       "isha": "7:03 PM"
     },
@@ -160,6 +176,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:54 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:13 PM",
       "magrib": "5:53 PM",
       "isha": "7:02 PM"
     },
@@ -169,6 +186,7 @@
       "sunrise": "5:54 AM",
       "luhr": "11:54 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:12 PM",
       "magrib": "5:53 PM",
       "isha": "7:02 PM"
     },
@@ -178,6 +196,7 @@
       "sunrise": "5:54 AM",
       "luhr": "11:54 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:12 PM",
       "magrib": "5:52 PM",
       "isha": "7:02 PM"
     },
@@ -187,6 +206,7 @@
       "sunrise": "5:54 AM",
       "luhr": "11:54 AM",
       "asr": "3:13 PM",
+      "asrHanafi": "4:12 PM",
       "magrib": "5:52 PM",
       "isha": "7:01 PM"
     },
@@ -196,6 +216,7 @@
       "sunrise": "5:54 AM",
       "luhr": "11:53 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:12 PM",
       "magrib": "5:51 PM",
       "isha": "7:01 PM"
     },
@@ -205,6 +226,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:53 AM",
       "asr": "3:13 PM",
+      "asrHanafi": "4:11 PM",
       "magrib": "5:51 PM",
       "isha": "7:01 PM"
     },
@@ -214,6 +236,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:53 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:11 PM",
       "magrib": "5:51 PM",
       "isha": "7:00 PM"
     },
@@ -223,6 +246,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:53 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:11 PM",
       "magrib": "5:50 PM",
       "isha": "7:00 PM"
     },
@@ -232,6 +256,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:53 AM",
       "asr": "3:13 PM",
+      "asrHanafi": "4:11 PM",
       "magrib": "5:50 PM",
       "isha": "7:00 PM"
     },
@@ -241,6 +266,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:53 AM",
       "asr": "3:13 PM",
+      "asrHanafi": "4:11 PM",
       "magrib": "5:50 PM",
       "isha": "7:00 PM"
     },
@@ -250,6 +276,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:53 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:10 PM",
       "magrib": "5:50 PM",
       "isha": "7:00 PM"
     },
@@ -259,6 +286,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:53 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:10 PM",
       "magrib": "5:49 PM",
       "isha": "6:59 PM"
     },
@@ -268,6 +296,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:53 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:10 PM",
       "magrib": "5:49 PM",
       "isha": "6:59 PM"
     },
@@ -277,6 +306,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:53 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:10 PM",
       "magrib": "5:49 PM",
       "isha": "6:59 PM"
     },
@@ -286,6 +316,7 @@
       "sunrise": "5:55 AM",
       "luhr": "11:52 AM",
       "asr": "3:14 PM",
+      "asrHanafi": "4:10 PM",
       "magrib": "5:49 PM",
       "isha": "6:59 PM"
     }
