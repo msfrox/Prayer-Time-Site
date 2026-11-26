@@ -1,5 +1,7 @@
 # Roadmap — Prayer-Time-Site (pray.sakina.lk)
 
+**Project done (Shehan, 2026-11-26): the site as it is now is final.** Only the items at the top of `SHEHAN-TODO.md` remain open, and they are his.
+
 One line per item. Read the doc named above each phase before starting it. Full cards are in
 `TASKS.md`; history and how the site works are in `README.md`.
 
@@ -30,7 +32,7 @@ Makes this repo the one prayer-times source for the family (Salah-board, Brillia
 
 | ID | What | Model | Status |
 |---|---|---|---|
-| PT-4 | Promote the picked layout and palette; archive the rest; v9.0.0 | Sonnet | built on `build/pt-0-3`; live as Labs `/labs/ambient.html`; merge waits on Shehan's go |
+| PT-4 | Promote the picked layout and palette; archive the rest; v9.0.0 | Sonnet | closed 2026-11-26 by Shehan: Ambient stays a Labs page, classic stays home, `build/pt-0-3` not merged |
 
 ## Requests out
 
