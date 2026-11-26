@@ -31,7 +31,8 @@ the only zone list (13 zones). `id` is a two-digit string.
 
 `NN` = zone id, `MM` = month number. Fields: `zone`, `zoneName`, `districts`, `monthName`,
 `monthNum`, `year` (compilation metadata only), `days` (one per calendar day; each has `date`
-like `"1-Jan"` plus the six prayer keys), `apartmentDiff` (`lowRise` / `highRise` minute
+like `"1-Jan"` plus the six prayer keys, and optionally `asrHanafi`, ACJU's Hanafi asr; `asr`
+is always the Shafi'i time), `apartmentDiff` (`lowRise` / `highRise` minute
 offsets for fajr, sunrise, magrib, isha in tall buildings), `note`, `attribution` (some
 files), and `source`, `sourceUrl`, `sourcePhone`, `sourceEmail`.
 

@@ -143,5 +143,7 @@ Depends on: PT-1 merged and live.
 ## Later (not carded)
 
 - Android and iOS wrappers (README "Upcoming").
+- Show Hanafi asr (a setting on the site, Salah-board or bar): the data carries `asrHanafi` on
+  every day since revision `2026-11-26.3`; nothing displays it yet.
 - Lifting the Orbit dial and the Qibla compass as reusable components (brilliant-design
   web kit) once PT-4 has archived them.
