@@ -1,5 +1,9 @@
 name: Deploy to GitHub Pages
 
+# Publishes only the allowlist in build/make-site.sh (not the whole repo).
+# Needs Settings > Pages > Source = "GitHub Actions"; with "Deploy from a branch" the legacy
+# build serves the whole repo and races this workflow.
+
 on:
   push:
     branches: [ main ]
@@ -7,25 +11,17 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
 
       - name: Assemble site from allowlist
         run: |
@@ -33,11 +29,26 @@ jobs:
           bash build/make-site.sh _site
           echo "sw.js updated: $(grep SHELL_VERSION _site/sw.js | head -1)"
 
+      - name: Verify site folder
+        run: bash build/verify-site.sh _site
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: '_site'
 
+  # A separate job so "Re-run failed jobs" retries only the deploy and reuses the artifact.
+  # (Two runs on 2026-11-25 lost the artifact lookup in deploy-pages although the upload succeeded.)
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
