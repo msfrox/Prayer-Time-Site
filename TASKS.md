@@ -86,7 +86,7 @@ loads it with a plain `<script>` tag.
 
 ### PT-4 — Promote the picked layout and palette          [Sonnet] · effort medium · ~3 h
 **Status 2026-11-18:** Partly done. On `main`, Ambient v9 is live as a Labs page, `/labs/ambient.html` (`5e09568`, `67cb755`); `/` is still the classic v8 page. The full swap (Ambient as `/`, `classic.html`, v9.0.0) is built on branch `build/pt-0-3` (`64b0da1`, pushed, not merged). Waits on Shehan's go after he tries Labs on his phone. Taken from the commits, 2026-11-21 docs pass.
-**BLOCKED on Shehan: Q12 (layout) and Q13 (palette) in SHEHAN-TODO.md.**
+**CLOSED 2026-11-26 (Shehan's call, in chat: "prayer time, however it is right now, on prayer time is okay. So close everything on prayer time.").** Ambient stays a Labs page, the classic page stays home, and `build/pt-0-3` is not merged (the branch is kept, nothing deleted).
 Why: closes the two picks open since June (ADR 0002).
 Context to read: `decisions/0002-…` (the feature list in point 1 is the acceptance test),
 `BACKLOG.md`, the picked `ui-*.html`, `assets/css/designs-base.css` + the picked
