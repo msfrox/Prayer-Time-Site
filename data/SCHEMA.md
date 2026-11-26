@@ -1,8 +1,8 @@
 # Prayer-time data contract (v1)
 
-Everything under `https://pray.gear.lk/data/` is the one published source of ACJU prayer
+Everything under `https://pray.sakina.lk/data/` is the one published source of ACJU prayer
 times (decision 0001). Consumers copy these files, check them against `manifest.json`, and
-keep working offline on what they have. Machine-readable shapes are in `data/schema/`.
+keep working offline on what they have. The same files still answer at `https://pray.gear.lk/data/` until the last reader there has moved (then that address retires); new readers use pray.sakina.lk. Machine-readable shapes are in `data/schema/`.
 
 Nothing here is calculated. The tables are typed from ACJU's PDF; they are solar-based and
 repeat on the same dates every year. Times are 12-hour strings in Sri Lanka time

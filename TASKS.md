@@ -7,7 +7,7 @@ cards are in `SHEHAN-TODO.md`.
 
 House rules for every card: no framework and no build step for the site itself; prayer keys
 are `fajr, sunrise, luhr, asr, magrib, isha` and are never renamed; no AI attribution in
-commits; work on a branch, because **a push to `main` deploys to pray.gear.lk**.
+commits; work on a branch, because **a push to `main` deploys the pray.gear.lk redirect, and the site at pray.sakina.lk needs `npx wrangler deploy`**.
 
 ---
 
@@ -15,7 +15,7 @@ commits; work on a branch, because **a push to `main` deploys to pray.gear.lk**.
 **Status 2026-11-17:** Done (`2d0ec37`; allowlisted `_site/` via `build/make-site.sh`). Taken from the commits, 2026-11-21 docs pass; the card's own Done-when was not re-run.
 Why: `.github/workflows/pages.yml` uploads the whole repo root (`path: '.'`), so `BACKLOG.md`,
 `TASKS.md`, `HANDOFF.md`, `SHEHAN-TODO.md`, `decisions/`, `tests/` and `build/` are all served
-publicly at pray.gear.lk the moment they reach `main`.
+publicly at the site the moment they reach `main`.
 Context to read: `.github/workflows/pages.yml`, README "Repository structure".
 Do: make the workflow assemble a `_site/` folder from an explicit allowlist (`index.html`,
 `manifest.json`, `sw.js`, `CNAME`, `assets/`, `data/`, and the preview pages that are still
@@ -115,7 +115,8 @@ Done when: `validate.js` passes with a new Nallur test point; manifest test pass
 Don't: do this on a guess.
 
 ### PT-6 — Move the site to the sakina.lk domain                [Sonnet] · effort medium · ~2 h
-Status: **step 1 done 2026-11-25** (host from Shehan: "use pray.sakina.lk … use Wrangler"). https://pray.sakina.lk is live: Worker `prayer-time-site` (static assets from `build/make-site.sh`, `wrangler.jsonc`, `build/worker.js`), deployed with `bash build/make-site.sh _site && npx wrangler deploy`. Share texts say pray.sakina.lk. pray.gear.lk stays on GitHub Pages, unchanged. **Superseded 2026-11-26 (Shehan): "shall we just add a redirect to pray.gear.lk and make pray.sakina.lk the only one" → "Yes, redirect pages"** (replaces the earlier "keep both for now. retire after about 6 months."). pray.gear.lk pages now redirect to the same path on pray.sakina.lk (`build/make-gear-redirect.sh`, run only in `pages.yml`; CI checks it with `verify-site.sh --gear`); `/data/` keeps answering there. The old address retires fully once the Salah-board reads from pray.sakina.lk (card in Salah-board TASKS.md). **Left:** then SCHEMA.md, README and readers (PT-R1) to the new host; a deploy of the Worker on push.
+Status: **step 1 done 2026-11-25** (host from Shehan: "use pray.sakina.lk … use Wrangler"). https://pray.sakina.lk is live: Worker `prayer-time-site` (static assets from `build/make-site.sh`, `wrangler.jsonc`, `build/worker.js`), deployed with `bash build/make-site.sh _site && npx wrangler deploy`. Share texts say pray.sakina.lk. pray.gear.lk stays on GitHub Pages, unchanged. **Superseded 2026-11-26 (Shehan): "shall we just add a redirect to pray.gear.lk and make pray.sakina.lk the only one" → "Yes, redirect pages"** (replaces the earlier "keep both for now. retire after about 6 months."). pray.gear.lk pages now redirect to the same path on pray.sakina.lk (`build/make-gear-redirect.sh`, run only in `pages.yml`; CI checks it with `verify-site.sh --gear`); `/data/` keeps answering there. The old address retires fully once the Salah-board reads from pray.sakina.lk (card in Salah-board TASKS.md). **Docs repointed 2026-11-26** (README, SCHEMA.md, ROADMAP, TASKS, SHEHAN-TODO, Labs/designs pages; ADR 0001 is history and keeps the old URL). **Worker deploy on push: not set up.** The only workflow is `pages.yml` (gear.lk redirect); the Worker is deployed by hand. Recommended and decided on default (26 Nov), not seen by Shehan: keep the manual deploy for now (`bash build/make-site.sh _site && npx wrangler deploy`), since a push to `main` then cannot ship a broken site to the real host.
+**Left, needs Shehan:** (1) deploy the Worker once so the repointed Labs/designs text is live: run the command above from this repo (wrangler needs his Cloudflare login). (2) Optional, to deploy on push: create a Cloudflare API token (template "Edit Cloudflare Workers"), add it as repo secret `CLOUDFLARE_API_TOKEN` and the account id as `CLOUDFLARE_ACCOUNT_ID` (Settings → Secrets and variables → Actions), then ask for a `deploy-worker` job: checkout, `bash build/make-site.sh _site`, `bash build/verify-site.sh _site`, `npx wrangler deploy` (cloudflare/wrangler-action@v3), on push to `main`. (3) PT-R1 readers (Brilliant fetcher, Salah-board) move to pray.sakina.lk/data/, then gear.lk retires.
 Why: Shehan, 25 Nov 2026: the site is fine as it is; "only thing is, we have to move that to the Sakina.lk domain".
 Context to read: `CNAME`, `README.md`, ADR 0001 (the published data contract), every `pray.gear.lk` reference (pt-core.js, app.js, SCHEMA.md), PT-R1 (brilliant-bar's fetcher).
 Do: agree the host name with Shehan (e.g. `pray.sakina.lk`); set up the domain (Cloudflare: Shehan); change the references; pages on `pray.gear.lk` redirect (2026-11-26), and keep its `data/manifest.json` and data files answering until every reader has moved.
@@ -132,7 +133,7 @@ For `brilliant-bar` (card belongs in Brilliant's tracker under S7, the `prayer` 
 Why: `bin/brilliant-prayer-fetch` reads `~/Projects/Prayer-Time-Site/data/` off the disk, so
 the desktop's prayer times depend on a git checkout being present and current (ADR 0001).
 Do: keep a cache at `~/.cache/brilliant/prayer-data/`; on a timer (daily is plenty) fetch
-`https://pray.gear.lk/data/manifest.json`, download files whose SHA-256 differs, verify, swap
+`https://pray.sakina.lk/data/manifest.json` (pray.gear.lk/data/ answers too until retired), download files whose SHA-256 differs, verify, swap
 atomically, keep the previous set; read only from the cache; keep `BRILLIANT_PRAYER_DATA` as a
 development override; put the manifest `revision` in the published `prayer-times.json`.
 Done when: with no Prayer-Time-Site checkout and no network, the popout still shows times

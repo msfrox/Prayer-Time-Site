@@ -2,25 +2,22 @@
 
 _Replace this file at the end of every session; git history keeps the old versions._
 
-## Current state (2026-11-18)
+## Current state (2026-11-26)
 
-- **Live:** `/` is still the classic v8 page (byte-identical `index.html`, `app.js`, `style.css`).
-  **New:** https://pray.gear.lk/labs/ambient.html (Ambient v9, linked from `/labs.html`) for Shehan to test on his phone.
-- `main` = old main + PT-0..PT-3 (allowlist deploy via `build/make-site.sh`, manifest/schema, timetable test,
-  versioned pt-core) + the Labs page. All old Labs pages and `designs.html` are still deployed.
-- Labs page: `labs/ambient.html`, `assets/css/ambient-base.css` (Daylight tokens, light only: the dark
-  media block was removed so the sheet matches the light sky view), `ambient.css`, `ambient.js`; data
-  via `PT.configure({dataBase:"/data"})`. Locate prompt sits above the pull-up handle. SW pre-caches the Labs assets.
-- Branch `build/pt-0-3` (pushed) still has the full PT-4 swap (Ambient as `/`, `classic.html`, derived dark).
-  Its dark partner and prompt position fixes are NOT applied there; port `labs` fixes if he approves.
-- `npm test` 87 pass; `build/validate.js` 28/28.
-
-- **2026-11-26 (PT-6):** Shehan: "shall we just add a redirect to pray.gear.lk and make pray.sakina.lk the only one" → "Yes, redirect pages". Supersedes "keep both for ~6 months". pray.gear.lk (GitHub Pages) pages redirect to the same path on pray.sakina.lk via `build/make-gear-redirect.sh` in `pages.yml` only; `/data/`, CNAME and assets are untouched, and `sw.js` there is a retiring worker (clears caches, unregisters, reloads). `verify-site.sh --gear` fails CI if a page is not a redirect or `data/` differs. The Worker is unchanged. Installed copies on gear.lk lose their saved settings (stored per address; accepted). Retire gear.lk fully once the Salah-board reads from pray.sakina.lk.
+- **Hosts:** https://pray.sakina.lk is the site (Cloudflare Worker, `wrangler.jsonc`, deployed **by hand**:
+  `bash build/make-site.sh _site && npx wrangler deploy`; not on push). pray.gear.lk (GitHub Pages) redirects every
+  page to the same path on sakina.lk (`build/make-gear-redirect.sh`, `pages.yml`, checked by `verify-site.sh --gear`);
+  its `/data/` keeps answering for the Salah-board until every reader moves, then it retires.
+- **Docs repointed (PT-6 remainder):** README, SCHEMA.md, ROADMAP, TASKS, SHEHAN-TODO and the Labs/designs text now say
+  pray.sakina.lk. ADR 0001 is unchanged (history). The Labs/designs text is live on sakina.lk only after a Worker deploy.
+- **Decided on default (26 Nov), not seen by Shehan:** no deploy-on-push for the Worker; steps for adding it are in card PT-6.
+- `/` is still the classic v8 page; Ambient v9 is at `/labs/ambient.html`. `npm test` and `build/validate.js` green at last run.
+- Branch `build/pt-0-3` (pushed) still has the full PT-4 swap (Ambient as `/`); port the `labs` fixes if approved.
 
 ## Resume
 
-If Shehan approves: merge `build/pt-0-3` (or its PT-4 commit) onto `main`, apply the same two fixes
-(light sheet decision, prompt `bottom`), keep or delete `/labs/ambient.html`. Next: PT-5 (needs ACJU's Nallur answer).
+Waiting on Shehan: deploy the Worker once; optionally add Cloudflare secrets for deploy-on-push (PT-6 card); PT-4 approval;
+ACJU's Nallur answer for PT-5. Then PT-R1 readers move to sakina.lk and gear.lk retires.
 
 ## Gotchas
 
