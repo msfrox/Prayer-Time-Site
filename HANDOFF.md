@@ -15,6 +15,8 @@ _Replace this file at the end of every session; git history keeps the old versio
   Its dark partner and prompt position fixes are NOT applied there; port `labs` fixes if he approves.
 - `npm test` 87 pass; `build/validate.js` 28/28.
 
+- **2026-11-26 (PT-6):** Shehan: "keep both for now. retire after about 6 months." pray.gear.lk and pray.sakina.lk both stay live, no redirect now; retire pray.gear.lk around late May 2027.
+
 ## Resume
 
 If Shehan approves: merge `build/pt-0-3` (or its PT-4 commit) onto `main`, apply the same two fixes
