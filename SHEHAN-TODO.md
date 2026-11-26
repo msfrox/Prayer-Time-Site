@@ -2,20 +2,20 @@
 
 # 🟡 ANSWER HERE
 
-**0. Try Ambient on your phone (live now):** https://pray.gear.lk/labs/ambient.html
-(also the first card on https://pray.gear.lk/labs.html). The home page is unchanged. Tell me
+**0. Try Ambient on your phone (live now):** https://pray.sakina.lk/labs/ambient.html
+(also the first card on https://pray.sakina.lk/labs.html). The home page is unchanged. Tell me
 "keep it" (it becomes `/`, old page stays as classic) or what to change.
 
 
 The full question sheet for the faith-apps plan is `fable-sprint/S15-PLAN.md`. These are the
 ones that belong to this repo. A blank answer means the default stands.
 
-1. **Layout (S15 Q12).** Open `https://pray.gear.lk/labs.html` on your phone. Pick one:
+1. **Layout (S15 Q12).** Open `https://pray.sakina.lk/labs.html` on your phone. Pick one:
    Orbit, Journey, Stories, Bento, Ambient, or keep the current page.
    Recommended: **Journey** on top, with the current monthly table, sharing and high-rise
    sections kept below it. Unblocks card PT-4.
    → i like to see a version of ambiant with the current features in the pull up.
-2. **Palette (S15 Q13).** Open `https://pray.gear.lk/designs.html`. Pick one: Daylight,
+2. **Palette (S15 Q13).** Open `https://pray.sakina.lk/designs.html`. Pick one: Daylight,
    Midnight, Heritage, Dawn, Bold. Recommended: **Daylight** as light, with a matching dark.
    Unblocks card PT-4.
    → do that.
@@ -32,7 +32,7 @@ ones that belong to this repo. A blank answer means the default stands.
   > Assalamu alaikum. In the ACJU prayer timetable, Zone 02 lists "Jaffna, Nallur". Could you
   > confirm whether this Nallur is the Nallur Grama Niladhari division in Poonakary DS
   > (Kilinochchi district), or Nallur in Jaffna town? We publish your timetable at
-  > pray.gear.lk and want the zone boundary to match yours exactly. Jazakallahu khairan.
+  > pray.sakina.lk and want the zone boundary to match yours exactly. Jazakallahu khairan.
   Their answer unblocks card PT-5.
 - [ ] **Which edition of the ACJU PDF** were the tables typed from (year or date on the PDF)?
   It goes in the manifest's `source.edition`.

@@ -1,4 +1,4 @@
-# Roadmap — Prayer-Time-Site (pray.gear.lk)
+# Roadmap — Prayer-Time-Site (pray.sakina.lk)
 
 One line per item. Read the doc named above each phase before starting it. Full cards are in
 `TASKS.md`; history and how the site works are in `README.md`.

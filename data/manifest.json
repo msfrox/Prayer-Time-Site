@@ -1,7 +1,7 @@
 {
   "contract": 1,
-  "revision": "2026-11-16.1",
-  "revised": "2026-11-16",
+  "revision": "2026-11-26.1",
+  "revised": "2026-11-26",
   "source": {
     "name": "ACJU",
     "url": "https://www.acju.lk",
@@ -10,8 +10,8 @@
   "files": [
     {
       "path": "SCHEMA.md",
-      "sha256": "abbe9c46279ab24b9ef8554f27a8b2b91d3a4f55a93c3400a2d2a23fb3f30c4d",
-      "bytes": 2300
+      "sha256": "9733809829101610298ca3df4a9ba6da4c1b626a1836a25f34df6c47d25b2c87",
+      "bytes": 2461
     },
     {
       "path": "schema/manifest.schema.json",
